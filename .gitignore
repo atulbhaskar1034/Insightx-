@@ -1,6 +1,7 @@
 # Backend Data and Vector Stores
-backend/data/
-backend/vector_store/
+backend/data/*
+!backend/data/upi_transactions.db
+!backend/vector_store/
 
 # Frontend build artifacts & dependencies
 frontend/node_modules/
