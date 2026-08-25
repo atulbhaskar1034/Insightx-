@@ -54,7 +54,7 @@ VECTOR_STORE_PATH = os.path.join(PROJECT_ROOT, "vector_store")
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY not found. Create a .env file in backend/ (see .env.example).")
