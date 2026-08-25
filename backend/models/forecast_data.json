@@ -1,0 +1,2203 @@
+{
+  "historical": [
+    {
+      "date": "2024-01-01",
+      "txn_count": 665,
+      "total_amount": 881371
+    },
+    {
+      "date": "2024-01-02",
+      "txn_count": 707,
+      "total_amount": 896546
+    },
+    {
+      "date": "2024-01-03",
+      "txn_count": 638,
+      "total_amount": 868891
+    },
+    {
+      "date": "2024-01-04",
+      "txn_count": 661,
+      "total_amount": 820257
+    },
+    {
+      "date": "2024-01-05",
+      "txn_count": 705,
+      "total_amount": 931644
+    },
+    {
+      "date": "2024-01-06",
+      "txn_count": 667,
+      "total_amount": 822688
+    },
+    {
+      "date": "2024-01-07",
+      "txn_count": 694,
+      "total_amount": 896713
+    },
+    {
+      "date": "2024-01-08",
+      "txn_count": 672,
+      "total_amount": 792443
+    },
+    {
+      "date": "2024-01-09",
+      "txn_count": 667,
+      "total_amount": 811125
+    },
+    {
+      "date": "2024-01-10",
+      "txn_count": 723,
+      "total_amount": 842837
+    },
+    {
+      "date": "2024-01-11",
+      "txn_count": 721,
+      "total_amount": 876533
+    },
+    {
+      "date": "2024-01-12",
+      "txn_count": 721,
+      "total_amount": 899174
+    },
+    {
+      "date": "2024-01-13",
+      "txn_count": 640,
+      "total_amount": 771469
+    },
+    {
+      "date": "2024-01-14",
+      "txn_count": 742,
+      "total_amount": 1016864
+    },
+    {
+      "date": "2024-01-15",
+      "txn_count": 667,
+      "total_amount": 974682
+    },
+    {
+      "date": "2024-01-16",
+      "txn_count": 709,
+      "total_amount": 931052
+    },
+    {
+      "date": "2024-01-17",
+      "txn_count": 650,
+      "total_amount": 839473
+    },
+    {
+      "date": "2024-01-18",
+      "txn_count": 680,
+      "total_amount": 869758
+    },
+    {
+      "date": "2024-01-19",
+      "txn_count": 710,
+      "total_amount": 925622
+    },
+    {
+      "date": "2024-01-20",
+      "txn_count": 691,
+      "total_amount": 993375
+    },
+    {
+      "date": "2024-01-21",
+      "txn_count": 716,
+      "total_amount": 936699
+    },
+    {
+      "date": "2024-01-22",
+      "txn_count": 685,
+      "total_amount": 948306
+    },
+    {
+      "date": "2024-01-23",
+      "txn_count": 676,
+      "total_amount": 908558
+    },
+    {
+      "date": "2024-01-24",
+      "txn_count": 664,
+      "total_amount": 799547
+    },
+    {
+      "date": "2024-01-25",
+      "txn_count": 713,
+      "total_amount": 956634
+    },
+    {
+      "date": "2024-01-26",
+      "txn_count": 660,
+      "total_amount": 903797
+    },
+    {
+      "date": "2024-01-27",
+      "txn_count": 664,
+      "total_amount": 844422
+    },
+    {
+      "date": "2024-01-28",
+      "txn_count": 643,
+      "total_amount": 835618
+    },
+    {
+      "date": "2024-01-29",
+      "txn_count": 713,
+      "total_amount": 922848
+    },
+    {
+      "date": "2024-01-30",
+      "txn_count": 704,
+      "total_amount": 856321
+    },
+    {
+      "date": "2024-01-31",
+      "txn_count": 653,
+      "total_amount": 881424
+    },
+    {
+      "date": "2024-02-01",
+      "txn_count": 663,
+      "total_amount": 942517
+    },
+    {
+      "date": "2024-02-02",
+      "txn_count": 694,
+      "total_amount": 902338
+    },
+    {
+      "date": "2024-02-03",
+      "txn_count": 688,
+      "total_amount": 816326
+    },
+    {
+      "date": "2024-02-04",
+      "txn_count": 718,
+      "total_amount": 902140
+    },
+    {
+      "date": "2024-02-05",
+      "txn_count": 745,
+      "total_amount": 971107
+    },
+    {
+      "date": "2024-02-06",
+      "txn_count": 694,
+      "total_amount": 808993
+    },
+    {
+      "date": "2024-02-07",
+      "txn_count": 661,
+      "total_amount": 856915
+    },
+    {
+      "date": "2024-02-08",
+      "txn_count": 671,
+      "total_amount": 938224
+    },
+    {
+      "date": "2024-02-09",
+      "txn_count": 673,
+      "total_amount": 883622
+    },
+    {
+      "date": "2024-02-10",
+      "txn_count": 678,
+      "total_amount": 886751
+    },
+    {
+      "date": "2024-02-11",
+      "txn_count": 683,
+      "total_amount": 890814
+    },
+    {
+      "date": "2024-02-12",
+      "txn_count": 653,
+      "total_amount": 914396
+    },
+    {
+      "date": "2024-02-13",
+      "txn_count": 678,
+      "total_amount": 897455
+    },
+    {
+      "date": "2024-02-14",
+      "txn_count": 666,
+      "total_amount": 899850
+    },
+    {
+      "date": "2024-02-15",
+      "txn_count": 728,
+      "total_amount": 977123
+    },
+    {
+      "date": "2024-02-16",
+      "txn_count": 643,
+      "total_amount": 799821
+    },
+    {
+      "date": "2024-02-17",
+      "txn_count": 677,
+      "total_amount": 857774
+    },
+    {
+      "date": "2024-02-18",
+      "txn_count": 706,
+      "total_amount": 950478
+    },
+    {
+      "date": "2024-02-19",
+      "txn_count": 667,
+      "total_amount": 885898
+    },
+    {
+      "date": "2024-02-20",
+      "txn_count": 659,
+      "total_amount": 807878
+    },
+    {
+      "date": "2024-02-21",
+      "txn_count": 697,
+      "total_amount": 907353
+    },
+    {
+      "date": "2024-02-22",
+      "txn_count": 730,
+      "total_amount": 921170
+    },
+    {
+      "date": "2024-02-23",
+      "txn_count": 689,
+      "total_amount": 872766
+    },
+    {
+      "date": "2024-02-24",
+      "txn_count": 697,
+      "total_amount": 909680
+    },
+    {
+      "date": "2024-02-25",
+      "txn_count": 666,
+      "total_amount": 934521
+    },
+    {
+      "date": "2024-02-26",
+      "txn_count": 714,
+      "total_amount": 921608
+    },
+    {
+      "date": "2024-02-27",
+      "txn_count": 658,
+      "total_amount": 898915
+    },
+    {
+      "date": "2024-02-28",
+      "txn_count": 659,
+      "total_amount": 814476
+    },
+    {
+      "date": "2024-02-29",
+      "txn_count": 604,
+      "total_amount": 855421
+    },
+    {
+      "date": "2024-03-01",
+      "txn_count": 739,
+      "total_amount": 986357
+    },
+    {
+      "date": "2024-03-02",
+      "txn_count": 713,
+      "total_amount": 916742
+    },
+    {
+      "date": "2024-03-03",
+      "txn_count": 650,
+      "total_amount": 849322
+    },
+    {
+      "date": "2024-03-04",
+      "txn_count": 707,
+      "total_amount": 865943
+    },
+    {
+      "date": "2024-03-05",
+      "txn_count": 693,
+      "total_amount": 919077
+    },
+    {
+      "date": "2024-03-06",
+      "txn_count": 688,
+      "total_amount": 870821
+    },
+    {
+      "date": "2024-03-07",
+      "txn_count": 710,
+      "total_amount": 921119
+    },
+    {
+      "date": "2024-03-08",
+      "txn_count": 672,
+      "total_amount": 893738
+    },
+    {
+      "date": "2024-03-09",
+      "txn_count": 674,
+      "total_amount": 849315
+    },
+    {
+      "date": "2024-03-10",
+      "txn_count": 618,
+      "total_amount": 827610
+    },
+    {
+      "date": "2024-03-11",
+      "txn_count": 699,
+      "total_amount": 1004122
+    },
+    {
+      "date": "2024-03-12",
+      "txn_count": 652,
+      "total_amount": 800047
+    },
+    {
+      "date": "2024-03-13",
+      "txn_count": 701,
+      "total_amount": 931772
+    },
+    {
+      "date": "2024-03-14",
+      "txn_count": 654,
+      "total_amount": 915846
+    },
+    {
+      "date": "2024-03-15",
+      "txn_count": 671,
+      "total_amount": 884855
+    },
+    {
+      "date": "2024-03-16",
+      "txn_count": 679,
+      "total_amount": 898729
+    },
+    {
+      "date": "2024-03-17",
+      "txn_count": 690,
+      "total_amount": 791386
+    },
+    {
+      "date": "2024-03-18",
+      "txn_count": 693,
+      "total_amount": 913195
+    },
+    {
+      "date": "2024-03-19",
+      "txn_count": 694,
+      "total_amount": 950172
+    },
+    {
+      "date": "2024-03-20",
+      "txn_count": 672,
+      "total_amount": 849282
+    },
+    {
+      "date": "2024-03-21",
+      "txn_count": 676,
+      "total_amount": 909272
+    },
+    {
+      "date": "2024-03-22",
+      "txn_count": 709,
+      "total_amount": 876495
+    },
+    {
+      "date": "2024-03-23",
+      "txn_count": 670,
+      "total_amount": 847392
+    },
+    {
+      "date": "2024-03-24",
+      "txn_count": 738,
+      "total_amount": 905139
+    },
+    {
+      "date": "2024-03-25",
+      "txn_count": 682,
+      "total_amount": 895179
+    },
+    {
+      "date": "2024-03-26",
+      "txn_count": 694,
+      "total_amount": 914680
+    },
+    {
+      "date": "2024-03-27",
+      "txn_count": 746,
+      "total_amount": 934012
+    },
+    {
+      "date": "2024-03-28",
+      "txn_count": 658,
+      "total_amount": 864577
+    },
+    {
+      "date": "2024-03-29",
+      "txn_count": 667,
+      "total_amount": 874284
+    },
+    {
+      "date": "2024-03-30",
+      "txn_count": 664,
+      "total_amount": 833498
+    },
+    {
+      "date": "2024-03-31",
+      "txn_count": 661,
+      "total_amount": 814224
+    },
+    {
+      "date": "2024-04-01",
+      "txn_count": 658,
+      "total_amount": 886926
+    },
+    {
+      "date": "2024-04-02",
+      "txn_count": 653,
+      "total_amount": 864277
+    },
+    {
+      "date": "2024-04-03",
+      "txn_count": 696,
+      "total_amount": 901270
+    },
+    {
+      "date": "2024-04-04",
+      "txn_count": 649,
+      "total_amount": 809549
+    },
+    {
+      "date": "2024-04-05",
+      "txn_count": 666,
+      "total_amount": 834027
+    },
+    {
+      "date": "2024-04-06",
+      "txn_count": 715,
+      "total_amount": 919282
+    },
+    {
+      "date": "2024-04-07",
+      "txn_count": 672,
+      "total_amount": 832208
+    },
+    {
+      "date": "2024-04-08",
+      "txn_count": 714,
+      "total_amount": 915130
+    },
+    {
+      "date": "2024-04-09",
+      "txn_count": 698,
+      "total_amount": 938805
+    },
+    {
+      "date": "2024-04-10",
+      "txn_count": 772,
+      "total_amount": 1012568
+    },
+    {
+      "date": "2024-04-11",
+      "txn_count": 711,
+      "total_amount": 900128
+    },
+    {
+      "date": "2024-04-12",
+      "txn_count": 674,
+      "total_amount": 881692
+    },
+    {
+      "date": "2024-04-13",
+      "txn_count": 691,
+      "total_amount": 940841
+    },
+    {
+      "date": "2024-04-14",
+      "txn_count": 682,
+      "total_amount": 761108
+    },
+    {
+      "date": "2024-04-15",
+      "txn_count": 679,
+      "total_amount": 917839
+    },
+    {
+      "date": "2024-04-16",
+      "txn_count": 636,
+      "total_amount": 850908
+    },
+    {
+      "date": "2024-04-17",
+      "txn_count": 677,
+      "total_amount": 841316
+    },
+    {
+      "date": "2024-04-18",
+      "txn_count": 688,
+      "total_amount": 846576
+    },
+    {
+      "date": "2024-04-19",
+      "txn_count": 706,
+      "total_amount": 957833
+    },
+    {
+      "date": "2024-04-20",
+      "txn_count": 676,
+      "total_amount": 915330
+    },
+    {
+      "date": "2024-04-21",
+      "txn_count": 682,
+      "total_amount": 916372
+    },
+    {
+      "date": "2024-04-22",
+      "txn_count": 670,
+      "total_amount": 890788
+    },
+    {
+      "date": "2024-04-23",
+      "txn_count": 682,
+      "total_amount": 916130
+    },
+    {
+      "date": "2024-04-24",
+      "txn_count": 660,
+      "total_amount": 939044
+    },
+    {
+      "date": "2024-04-25",
+      "txn_count": 677,
+      "total_amount": 924403
+    },
+    {
+      "date": "2024-04-26",
+      "txn_count": 648,
+      "total_amount": 880407
+    },
+    {
+      "date": "2024-04-27",
+      "txn_count": 703,
+      "total_amount": 918274
+    },
+    {
+      "date": "2024-04-28",
+      "txn_count": 693,
+      "total_amount": 959307
+    },
+    {
+      "date": "2024-04-29",
+      "txn_count": 707,
+      "total_amount": 957221
+    },
+    {
+      "date": "2024-04-30",
+      "txn_count": 701,
+      "total_amount": 959232
+    },
+    {
+      "date": "2024-05-01",
+      "txn_count": 669,
+      "total_amount": 881120
+    },
+    {
+      "date": "2024-05-02",
+      "txn_count": 681,
+      "total_amount": 865883
+    },
+    {
+      "date": "2024-05-03",
+      "txn_count": 663,
+      "total_amount": 872433
+    },
+    {
+      "date": "2024-05-04",
+      "txn_count": 675,
+      "total_amount": 930123
+    },
+    {
+      "date": "2024-05-05",
+      "txn_count": 685,
+      "total_amount": 900143
+    },
+    {
+      "date": "2024-05-06",
+      "txn_count": 656,
+      "total_amount": 872638
+    },
+    {
+      "date": "2024-05-07",
+      "txn_count": 672,
+      "total_amount": 870826
+    },
+    {
+      "date": "2024-05-08",
+      "txn_count": 680,
+      "total_amount": 891325
+    },
+    {
+      "date": "2024-05-09",
+      "txn_count": 696,
+      "total_amount": 853170
+    },
+    {
+      "date": "2024-05-10",
+      "txn_count": 722,
+      "total_amount": 893374
+    },
+    {
+      "date": "2024-05-11",
+      "txn_count": 683,
+      "total_amount": 921780
+    },
+    {
+      "date": "2024-05-12",
+      "txn_count": 707,
+      "total_amount": 1007289
+    },
+    {
+      "date": "2024-05-13",
+      "txn_count": 712,
+      "total_amount": 915634
+    },
+    {
+      "date": "2024-05-14",
+      "txn_count": 646,
+      "total_amount": 807776
+    },
+    {
+      "date": "2024-05-15",
+      "txn_count": 666,
+      "total_amount": 837339
+    },
+    {
+      "date": "2024-05-16",
+      "txn_count": 695,
+      "total_amount": 917936
+    },
+    {
+      "date": "2024-05-17",
+      "txn_count": 665,
+      "total_amount": 964169
+    },
+    {
+      "date": "2024-05-18",
+      "txn_count": 636,
+      "total_amount": 789455
+    },
+    {
+      "date": "2024-05-19",
+      "txn_count": 713,
+      "total_amount": 897467
+    },
+    {
+      "date": "2024-05-20",
+      "txn_count": 693,
+      "total_amount": 904916
+    },
+    {
+      "date": "2024-05-21",
+      "txn_count": 697,
+      "total_amount": 916236
+    },
+    {
+      "date": "2024-05-22",
+      "txn_count": 709,
+      "total_amount": 899442
+    },
+    {
+      "date": "2024-05-23",
+      "txn_count": 680,
+      "total_amount": 913527
+    },
+    {
+      "date": "2024-05-24",
+      "txn_count": 684,
+      "total_amount": 896207
+    },
+    {
+      "date": "2024-05-25",
+      "txn_count": 674,
+      "total_amount": 906707
+    },
+    {
+      "date": "2024-05-26",
+      "txn_count": 692,
+      "total_amount": 909762
+    },
+    {
+      "date": "2024-05-27",
+      "txn_count": 756,
+      "total_amount": 938400
+    },
+    {
+      "date": "2024-05-28",
+      "txn_count": 645,
+      "total_amount": 861300
+    },
+    {
+      "date": "2024-05-29",
+      "txn_count": 727,
+      "total_amount": 977161
+    },
+    {
+      "date": "2024-05-30",
+      "txn_count": 701,
+      "total_amount": 956152
+    },
+    {
+      "date": "2024-05-31",
+      "txn_count": 753,
+      "total_amount": 1055167
+    },
+    {
+      "date": "2024-06-01",
+      "txn_count": 694,
+      "total_amount": 816427
+    },
+    {
+      "date": "2024-06-02",
+      "txn_count": 712,
+      "total_amount": 998735
+    },
+    {
+      "date": "2024-06-03",
+      "txn_count": 687,
+      "total_amount": 871582
+    },
+    {
+      "date": "2024-06-04",
+      "txn_count": 667,
+      "total_amount": 891644
+    },
+    {
+      "date": "2024-06-05",
+      "txn_count": 696,
+      "total_amount": 898769
+    },
+    {
+      "date": "2024-06-06",
+      "txn_count": 677,
+      "total_amount": 910565
+    },
+    {
+      "date": "2024-06-07",
+      "txn_count": 651,
+      "total_amount": 825661
+    },
+    {
+      "date": "2024-06-08",
+      "txn_count": 695,
+      "total_amount": 852667
+    },
+    {
+      "date": "2024-06-09",
+      "txn_count": 652,
+      "total_amount": 928793
+    },
+    {
+      "date": "2024-06-10",
+      "txn_count": 697,
+      "total_amount": 976628
+    },
+    {
+      "date": "2024-06-11",
+      "txn_count": 672,
+      "total_amount": 887857
+    },
+    {
+      "date": "2024-06-12",
+      "txn_count": 680,
+      "total_amount": 867227
+    },
+    {
+      "date": "2024-06-13",
+      "txn_count": 691,
+      "total_amount": 886877
+    },
+    {
+      "date": "2024-06-14",
+      "txn_count": 692,
+      "total_amount": 885825
+    },
+    {
+      "date": "2024-06-15",
+      "txn_count": 692,
+      "total_amount": 904193
+    },
+    {
+      "date": "2024-06-16",
+      "txn_count": 726,
+      "total_amount": 904709
+    },
+    {
+      "date": "2024-06-17",
+      "txn_count": 666,
+      "total_amount": 800529
+    },
+    {
+      "date": "2024-06-18",
+      "txn_count": 713,
+      "total_amount": 968288
+    },
+    {
+      "date": "2024-06-19",
+      "txn_count": 697,
+      "total_amount": 1002328
+    },
+    {
+      "date": "2024-06-20",
+      "txn_count": 683,
+      "total_amount": 958485
+    },
+    {
+      "date": "2024-06-21",
+      "txn_count": 675,
+      "total_amount": 874613
+    },
+    {
+      "date": "2024-06-22",
+      "txn_count": 689,
+      "total_amount": 974981
+    },
+    {
+      "date": "2024-06-23",
+      "txn_count": 667,
+      "total_amount": 876627
+    },
+    {
+      "date": "2024-06-24",
+      "txn_count": 660,
+      "total_amount": 936886
+    },
+    {
+      "date": "2024-06-25",
+      "txn_count": 685,
+      "total_amount": 859874
+    },
+    {
+      "date": "2024-06-26",
+      "txn_count": 720,
+      "total_amount": 927279
+    },
+    {
+      "date": "2024-06-27",
+      "txn_count": 658,
+      "total_amount": 850417
+    },
+    {
+      "date": "2024-06-28",
+      "txn_count": 696,
+      "total_amount": 857157
+    },
+    {
+      "date": "2024-06-29",
+      "txn_count": 683,
+      "total_amount": 918970
+    },
+    {
+      "date": "2024-06-30",
+      "txn_count": 755,
+      "total_amount": 917525
+    },
+    {
+      "date": "2024-07-01",
+      "txn_count": 695,
+      "total_amount": 845360
+    },
+    {
+      "date": "2024-07-02",
+      "txn_count": 650,
+      "total_amount": 842097
+    },
+    {
+      "date": "2024-07-03",
+      "txn_count": 674,
+      "total_amount": 852179
+    },
+    {
+      "date": "2024-07-04",
+      "txn_count": 719,
+      "total_amount": 1052612
+    },
+    {
+      "date": "2024-07-05",
+      "txn_count": 666,
+      "total_amount": 795334
+    },
+    {
+      "date": "2024-07-06",
+      "txn_count": 714,
+      "total_amount": 994366
+    },
+    {
+      "date": "2024-07-07",
+      "txn_count": 686,
+      "total_amount": 891389
+    },
+    {
+      "date": "2024-07-08",
+      "txn_count": 681,
+      "total_amount": 882892
+    },
+    {
+      "date": "2024-07-09",
+      "txn_count": 677,
+      "total_amount": 974402
+    },
+    {
+      "date": "2024-07-10",
+      "txn_count": 665,
+      "total_amount": 804462
+    },
+    {
+      "date": "2024-07-11",
+      "txn_count": 733,
+      "total_amount": 969945
+    },
+    {
+      "date": "2024-07-12",
+      "txn_count": 652,
+      "total_amount": 868545
+    },
+    {
+      "date": "2024-07-13",
+      "txn_count": 717,
+      "total_amount": 852290
+    },
+    {
+      "date": "2024-07-14",
+      "txn_count": 709,
+      "total_amount": 915292
+    },
+    {
+      "date": "2024-07-15",
+      "txn_count": 677,
+      "total_amount": 891520
+    },
+    {
+      "date": "2024-07-16",
+      "txn_count": 689,
+      "total_amount": 965005
+    },
+    {
+      "date": "2024-07-17",
+      "txn_count": 685,
+      "total_amount": 915187
+    },
+    {
+      "date": "2024-07-18",
+      "txn_count": 656,
+      "total_amount": 811326
+    },
+    {
+      "date": "2024-07-19",
+      "txn_count": 680,
+      "total_amount": 981790
+    },
+    {
+      "date": "2024-07-20",
+      "txn_count": 685,
+      "total_amount": 961630
+    },
+    {
+      "date": "2024-07-21",
+      "txn_count": 748,
+      "total_amount": 995360
+    },
+    {
+      "date": "2024-07-22",
+      "txn_count": 627,
+      "total_amount": 863852
+    },
+    {
+      "date": "2024-07-23",
+      "txn_count": 669,
+      "total_amount": 845834
+    },
+    {
+      "date": "2024-07-24",
+      "txn_count": 667,
+      "total_amount": 890575
+    },
+    {
+      "date": "2024-07-25",
+      "txn_count": 686,
+      "total_amount": 912895
+    },
+    {
+      "date": "2024-07-26",
+      "txn_count": 654,
+      "total_amount": 886052
+    },
+    {
+      "date": "2024-07-27",
+      "txn_count": 679,
+      "total_amount": 905491
+    },
+    {
+      "date": "2024-07-28",
+      "txn_count": 699,
+      "total_amount": 971168
+    },
+    {
+      "date": "2024-07-29",
+      "txn_count": 709,
+      "total_amount": 949438
+    },
+    {
+      "date": "2024-07-30",
+      "txn_count": 692,
+      "total_amount": 896623
+    },
+    {
+      "date": "2024-07-31",
+      "txn_count": 667,
+      "total_amount": 894994
+    },
+    {
+      "date": "2024-08-01",
+      "txn_count": 671,
+      "total_amount": 923483
+    },
+    {
+      "date": "2024-08-02",
+      "txn_count": 741,
+      "total_amount": 898178
+    },
+    {
+      "date": "2024-08-03",
+      "txn_count": 703,
+      "total_amount": 855212
+    },
+    {
+      "date": "2024-08-04",
+      "txn_count": 631,
+      "total_amount": 897550
+    },
+    {
+      "date": "2024-08-05",
+      "txn_count": 718,
+      "total_amount": 932028
+    },
+    {
+      "date": "2024-08-06",
+      "txn_count": 685,
+      "total_amount": 953294
+    },
+    {
+      "date": "2024-08-07",
+      "txn_count": 669,
+      "total_amount": 897738
+    },
+    {
+      "date": "2024-08-08",
+      "txn_count": 639,
+      "total_amount": 808674
+    },
+    {
+      "date": "2024-08-09",
+      "txn_count": 667,
+      "total_amount": 926552
+    },
+    {
+      "date": "2024-08-10",
+      "txn_count": 654,
+      "total_amount": 888495
+    },
+    {
+      "date": "2024-08-11",
+      "txn_count": 720,
+      "total_amount": 1020373
+    },
+    {
+      "date": "2024-08-12",
+      "txn_count": 666,
+      "total_amount": 819889
+    },
+    {
+      "date": "2024-08-13",
+      "txn_count": 701,
+      "total_amount": 913932
+    },
+    {
+      "date": "2024-08-14",
+      "txn_count": 637,
+      "total_amount": 812087
+    },
+    {
+      "date": "2024-08-15",
+      "txn_count": 718,
+      "total_amount": 919626
+    },
+    {
+      "date": "2024-08-16",
+      "txn_count": 647,
+      "total_amount": 791406
+    },
+    {
+      "date": "2024-08-17",
+      "txn_count": 738,
+      "total_amount": 991084
+    },
+    {
+      "date": "2024-08-18",
+      "txn_count": 709,
+      "total_amount": 970083
+    },
+    {
+      "date": "2024-08-19",
+      "txn_count": 714,
+      "total_amount": 895111
+    },
+    {
+      "date": "2024-08-20",
+      "txn_count": 738,
+      "total_amount": 934066
+    },
+    {
+      "date": "2024-08-21",
+      "txn_count": 694,
+      "total_amount": 998175
+    },
+    {
+      "date": "2024-08-22",
+      "txn_count": 674,
+      "total_amount": 904382
+    },
+    {
+      "date": "2024-08-23",
+      "txn_count": 714,
+      "total_amount": 866482
+    },
+    {
+      "date": "2024-08-24",
+      "txn_count": 639,
+      "total_amount": 867015
+    },
+    {
+      "date": "2024-08-25",
+      "txn_count": 672,
+      "total_amount": 930746
+    },
+    {
+      "date": "2024-08-26",
+      "txn_count": 710,
+      "total_amount": 900038
+    },
+    {
+      "date": "2024-08-27",
+      "txn_count": 723,
+      "total_amount": 982276
+    },
+    {
+      "date": "2024-08-28",
+      "txn_count": 683,
+      "total_amount": 882971
+    },
+    {
+      "date": "2024-08-29",
+      "txn_count": 669,
+      "total_amount": 831608
+    },
+    {
+      "date": "2024-08-30",
+      "txn_count": 619,
+      "total_amount": 812019
+    },
+    {
+      "date": "2024-08-31",
+      "txn_count": 668,
+      "total_amount": 821334
+    },
+    {
+      "date": "2024-09-01",
+      "txn_count": 670,
+      "total_amount": 901065
+    },
+    {
+      "date": "2024-09-02",
+      "txn_count": 682,
+      "total_amount": 877467
+    },
+    {
+      "date": "2024-09-03",
+      "txn_count": 680,
+      "total_amount": 947514
+    },
+    {
+      "date": "2024-09-04",
+      "txn_count": 719,
+      "total_amount": 1014180
+    },
+    {
+      "date": "2024-09-05",
+      "txn_count": 661,
+      "total_amount": 864762
+    },
+    {
+      "date": "2024-09-06",
+      "txn_count": 689,
+      "total_amount": 909964
+    },
+    {
+      "date": "2024-09-07",
+      "txn_count": 678,
+      "total_amount": 933240
+    },
+    {
+      "date": "2024-09-08",
+      "txn_count": 685,
+      "total_amount": 909545
+    },
+    {
+      "date": "2024-09-09",
+      "txn_count": 672,
+      "total_amount": 904352
+    },
+    {
+      "date": "2024-09-10",
+      "txn_count": 680,
+      "total_amount": 932516
+    },
+    {
+      "date": "2024-09-11",
+      "txn_count": 665,
+      "total_amount": 889620
+    },
+    {
+      "date": "2024-09-12",
+      "txn_count": 624,
+      "total_amount": 813618
+    },
+    {
+      "date": "2024-09-13",
+      "txn_count": 709,
+      "total_amount": 910010
+    },
+    {
+      "date": "2024-09-14",
+      "txn_count": 692,
+      "total_amount": 880865
+    },
+    {
+      "date": "2024-09-15",
+      "txn_count": 656,
+      "total_amount": 857436
+    },
+    {
+      "date": "2024-09-16",
+      "txn_count": 644,
+      "total_amount": 798688
+    },
+    {
+      "date": "2024-09-17",
+      "txn_count": 668,
+      "total_amount": 883860
+    },
+    {
+      "date": "2024-09-18",
+      "txn_count": 705,
+      "total_amount": 926428
+    },
+    {
+      "date": "2024-09-19",
+      "txn_count": 683,
+      "total_amount": 910438
+    },
+    {
+      "date": "2024-09-20",
+      "txn_count": 738,
+      "total_amount": 931332
+    },
+    {
+      "date": "2024-09-21",
+      "txn_count": 672,
+      "total_amount": 807601
+    },
+    {
+      "date": "2024-09-22",
+      "txn_count": 682,
+      "total_amount": 925800
+    },
+    {
+      "date": "2024-09-23",
+      "txn_count": 738,
+      "total_amount": 925600
+    },
+    {
+      "date": "2024-09-24",
+      "txn_count": 706,
+      "total_amount": 935074
+    },
+    {
+      "date": "2024-09-25",
+      "txn_count": 717,
+      "total_amount": 1085636
+    },
+    {
+      "date": "2024-09-26",
+      "txn_count": 710,
+      "total_amount": 928640
+    },
+    {
+      "date": "2024-09-27",
+      "txn_count": 671,
+      "total_amount": 870708
+    },
+    {
+      "date": "2024-09-28",
+      "txn_count": 699,
+      "total_amount": 805011
+    },
+    {
+      "date": "2024-09-29",
+      "txn_count": 694,
+      "total_amount": 900053
+    },
+    {
+      "date": "2024-09-30",
+      "txn_count": 708,
+      "total_amount": 924738
+    },
+    {
+      "date": "2024-10-01",
+      "txn_count": 685,
+      "total_amount": 822650
+    },
+    {
+      "date": "2024-10-02",
+      "txn_count": 695,
+      "total_amount": 956820
+    },
+    {
+      "date": "2024-10-03",
+      "txn_count": 631,
+      "total_amount": 810347
+    },
+    {
+      "date": "2024-10-04",
+      "txn_count": 664,
+      "total_amount": 864900
+    },
+    {
+      "date": "2024-10-05",
+      "txn_count": 639,
+      "total_amount": 879811
+    },
+    {
+      "date": "2024-10-06",
+      "txn_count": 686,
+      "total_amount": 955248
+    },
+    {
+      "date": "2024-10-07",
+      "txn_count": 644,
+      "total_amount": 882876
+    },
+    {
+      "date": "2024-10-08",
+      "txn_count": 723,
+      "total_amount": 1037407
+    },
+    {
+      "date": "2024-10-09",
+      "txn_count": 730,
+      "total_amount": 977003
+    },
+    {
+      "date": "2024-10-10",
+      "txn_count": 661,
+      "total_amount": 859079
+    },
+    {
+      "date": "2024-10-11",
+      "txn_count": 702,
+      "total_amount": 1024729
+    },
+    {
+      "date": "2024-10-12",
+      "txn_count": 664,
+      "total_amount": 817656
+    },
+    {
+      "date": "2024-10-13",
+      "txn_count": 690,
+      "total_amount": 958884
+    },
+    {
+      "date": "2024-10-14",
+      "txn_count": 686,
+      "total_amount": 888708
+    },
+    {
+      "date": "2024-10-15",
+      "txn_count": 666,
+      "total_amount": 851018
+    },
+    {
+      "date": "2024-10-16",
+      "txn_count": 709,
+      "total_amount": 835233
+    },
+    {
+      "date": "2024-10-17",
+      "txn_count": 691,
+      "total_amount": 913349
+    },
+    {
+      "date": "2024-10-18",
+      "txn_count": 694,
+      "total_amount": 885059
+    },
+    {
+      "date": "2024-10-19",
+      "txn_count": 673,
+      "total_amount": 783328
+    },
+    {
+      "date": "2024-10-20",
+      "txn_count": 740,
+      "total_amount": 1047066
+    },
+    {
+      "date": "2024-10-21",
+      "txn_count": 692,
+      "total_amount": 976884
+    },
+    {
+      "date": "2024-10-22",
+      "txn_count": 686,
+      "total_amount": 866226
+    },
+    {
+      "date": "2024-10-23",
+      "txn_count": 704,
+      "total_amount": 896708
+    },
+    {
+      "date": "2024-10-24",
+      "txn_count": 704,
+      "total_amount": 912848
+    },
+    {
+      "date": "2024-10-25",
+      "txn_count": 716,
+      "total_amount": 901052
+    },
+    {
+      "date": "2024-10-26",
+      "txn_count": 647,
+      "total_amount": 792907
+    },
+    {
+      "date": "2024-10-27",
+      "txn_count": 687,
+      "total_amount": 872280
+    },
+    {
+      "date": "2024-10-28",
+      "txn_count": 697,
+      "total_amount": 940748
+    },
+    {
+      "date": "2024-10-29",
+      "txn_count": 671,
+      "total_amount": 828098
+    },
+    {
+      "date": "2024-10-30",
+      "txn_count": 709,
+      "total_amount": 962882
+    },
+    {
+      "date": "2024-10-31",
+      "txn_count": 666,
+      "total_amount": 865025
+    },
+    {
+      "date": "2024-11-01",
+      "txn_count": 684,
+      "total_amount": 897106
+    },
+    {
+      "date": "2024-11-02",
+      "txn_count": 694,
+      "total_amount": 926504
+    },
+    {
+      "date": "2024-11-03",
+      "txn_count": 712,
+      "total_amount": 971917
+    },
+    {
+      "date": "2024-11-04",
+      "txn_count": 671,
+      "total_amount": 963104
+    },
+    {
+      "date": "2024-11-05",
+      "txn_count": 695,
+      "total_amount": 980204
+    },
+    {
+      "date": "2024-11-06",
+      "txn_count": 667,
+      "total_amount": 869282
+    },
+    {
+      "date": "2024-11-07",
+      "txn_count": 705,
+      "total_amount": 920199
+    },
+    {
+      "date": "2024-11-08",
+      "txn_count": 666,
+      "total_amount": 826291
+    },
+    {
+      "date": "2024-11-09",
+      "txn_count": 665,
+      "total_amount": 838709
+    },
+    {
+      "date": "2024-11-10",
+      "txn_count": 672,
+      "total_amount": 805224
+    },
+    {
+      "date": "2024-11-11",
+      "txn_count": 665,
+      "total_amount": 858593
+    },
+    {
+      "date": "2024-11-12",
+      "txn_count": 651,
+      "total_amount": 895571
+    },
+    {
+      "date": "2024-11-13",
+      "txn_count": 661,
+      "total_amount": 890189
+    },
+    {
+      "date": "2024-11-14",
+      "txn_count": 630,
+      "total_amount": 820444
+    },
+    {
+      "date": "2024-11-15",
+      "txn_count": 668,
+      "total_amount": 907539
+    },
+    {
+      "date": "2024-11-16",
+      "txn_count": 661,
+      "total_amount": 908791
+    },
+    {
+      "date": "2024-11-17",
+      "txn_count": 733,
+      "total_amount": 1012042
+    },
+    {
+      "date": "2024-11-18",
+      "txn_count": 676,
+      "total_amount": 812874
+    },
+    {
+      "date": "2024-11-19",
+      "txn_count": 706,
+      "total_amount": 927120
+    },
+    {
+      "date": "2024-11-20",
+      "txn_count": 682,
+      "total_amount": 908126
+    },
+    {
+      "date": "2024-11-21",
+      "txn_count": 661,
+      "total_amount": 904304
+    },
+    {
+      "date": "2024-11-22",
+      "txn_count": 679,
+      "total_amount": 829174
+    },
+    {
+      "date": "2024-11-23",
+      "txn_count": 595,
+      "total_amount": 881628
+    },
+    {
+      "date": "2024-11-24",
+      "txn_count": 686,
+      "total_amount": 865507
+    },
+    {
+      "date": "2024-11-25",
+      "txn_count": 753,
+      "total_amount": 966713
+    },
+    {
+      "date": "2024-11-26",
+      "txn_count": 712,
+      "total_amount": 923056
+    },
+    {
+      "date": "2024-11-27",
+      "txn_count": 681,
+      "total_amount": 887399
+    },
+    {
+      "date": "2024-11-28",
+      "txn_count": 694,
+      "total_amount": 906158
+    },
+    {
+      "date": "2024-11-29",
+      "txn_count": 655,
+      "total_amount": 928037
+    },
+    {
+      "date": "2024-11-30",
+      "txn_count": 686,
+      "total_amount": 860726
+    },
+    {
+      "date": "2024-12-01",
+      "txn_count": 698,
+      "total_amount": 940653
+    },
+    {
+      "date": "2024-12-02",
+      "txn_count": 740,
+      "total_amount": 1029843
+    },
+    {
+      "date": "2024-12-03",
+      "txn_count": 697,
+      "total_amount": 983201
+    },
+    {
+      "date": "2024-12-04",
+      "txn_count": 729,
+      "total_amount": 1016857
+    },
+    {
+      "date": "2024-12-05",
+      "txn_count": 713,
+      "total_amount": 904849
+    },
+    {
+      "date": "2024-12-06",
+      "txn_count": 698,
+      "total_amount": 839645
+    },
+    {
+      "date": "2024-12-07",
+      "txn_count": 715,
+      "total_amount": 1004722
+    },
+    {
+      "date": "2024-12-08",
+      "txn_count": 708,
+      "total_amount": 989887
+    },
+    {
+      "date": "2024-12-09",
+      "txn_count": 656,
+      "total_amount": 822042
+    },
+    {
+      "date": "2024-12-10",
+      "txn_count": 676,
+      "total_amount": 921747
+    },
+    {
+      "date": "2024-12-11",
+      "txn_count": 669,
+      "total_amount": 891242
+    },
+    {
+      "date": "2024-12-12",
+      "txn_count": 734,
+      "total_amount": 985721
+    },
+    {
+      "date": "2024-12-13",
+      "txn_count": 654,
+      "total_amount": 847713
+    },
+    {
+      "date": "2024-12-14",
+      "txn_count": 708,
+      "total_amount": 915459
+    },
+    {
+      "date": "2024-12-15",
+      "txn_count": 693,
+      "total_amount": 930036
+    },
+    {
+      "date": "2024-12-16",
+      "txn_count": 687,
+      "total_amount": 862701
+    },
+    {
+      "date": "2024-12-17",
+      "txn_count": 686,
+      "total_amount": 872683
+    },
+    {
+      "date": "2024-12-18",
+      "txn_count": 708,
+      "total_amount": 893692
+    },
+    {
+      "date": "2024-12-19",
+      "txn_count": 665,
+      "total_amount": 902503
+    },
+    {
+      "date": "2024-12-20",
+      "txn_count": 645,
+      "total_amount": 841649
+    },
+    {
+      "date": "2024-12-21",
+      "txn_count": 656,
+      "total_amount": 845653
+    },
+    {
+      "date": "2024-12-22",
+      "txn_count": 706,
+      "total_amount": 925353
+    },
+    {
+      "date": "2024-12-23",
+      "txn_count": 654,
+      "total_amount": 817894
+    },
+    {
+      "date": "2024-12-24",
+      "txn_count": 676,
+      "total_amount": 936944
+    },
+    {
+      "date": "2024-12-25",
+      "txn_count": 642,
+      "total_amount": 793157
+    },
+    {
+      "date": "2024-12-26",
+      "txn_count": 678,
+      "total_amount": 902031
+    },
+    {
+      "date": "2024-12-27",
+      "txn_count": 676,
+      "total_amount": 978239
+    },
+    {
+      "date": "2024-12-28",
+      "txn_count": 685,
+      "total_amount": 891217
+    },
+    {
+      "date": "2024-12-29",
+      "txn_count": 668,
+      "total_amount": 851014
+    },
+    {
+      "date": "2024-12-30",
+      "txn_count": 716,
+      "total_amount": 972740
+    }
+  ],
+  "count_forecast": [
+    {
+      "ds": "2024-12-31",
+      "yhat": 681.5940198502351,
+      "yhat_lower": 649.7898587248861,
+      "yhat_upper": 714.6277413748722
+    },
+    {
+      "ds": "2025-01-01",
+      "yhat": 687.0122771587713,
+      "yhat_lower": 653.6055843345467,
+      "yhat_upper": 718.0991375165178
+    },
+    {
+      "ds": "2025-01-02",
+      "yhat": 684.1966442951207,
+      "yhat_lower": 651.8392500996449,
+      "yhat_upper": 717.7652869872477
+    },
+    {
+      "ds": "2025-01-03",
+      "yhat": 687.9352777395156,
+      "yhat_lower": 654.347258546434,
+      "yhat_upper": 724.0117736291517
+    },
+    {
+      "ds": "2025-01-04",
+      "yhat": 687.3307288832463,
+      "yhat_lower": 654.376663571017,
+      "yhat_upper": 720.8535952852518
+    },
+    {
+      "ds": "2025-01-05",
+      "yhat": 702.8823253939013,
+      "yhat_lower": 671.1420219366012,
+      "yhat_upper": 736.7711591755539
+    },
+    {
+      "ds": "2025-01-06",
+      "yhat": 701.7968319866134,
+      "yhat_lower": 665.7141135469639,
+      "yhat_upper": 735.4017930326605
+    },
+    {
+      "ds": "2025-01-07",
+      "yhat": 698.8553367578492,
+      "yhat_lower": 665.236650859616,
+      "yhat_upper": 732.694301082473
+    },
+    {
+      "ds": "2025-01-08",
+      "yhat": 704.1052612370547,
+      "yhat_lower": 671.2037831632034,
+      "yhat_upper": 738.6937101835916
+    },
+    {
+      "ds": "2025-01-09",
+      "yhat": 700.7827349424169,
+      "yhat_lower": 666.4451360987607,
+      "yhat_upper": 733.8084574559924
+    },
+    {
+      "ds": "2025-01-10",
+      "yhat": 703.7007873586987,
+      "yhat_lower": 668.7710371484911,
+      "yhat_upper": 735.1099465674948
+    },
+    {
+      "ds": "2025-01-11",
+      "yhat": 701.9832389439783,
+      "yhat_lower": 668.6043797384158,
+      "yhat_upper": 737.0960134050837
+    },
+    {
+      "ds": "2025-01-12",
+      "yhat": 716.1708101186252,
+      "yhat_lower": 682.9818529658676,
+      "yhat_upper": 748.9086585478218
+    },
+    {
+      "ds": "2025-01-13",
+      "yhat": 713.4944508275848,
+      "yhat_lower": 679.5349205826399,
+      "yhat_upper": 747.7373331213754
+    },
+    {
+      "ds": "2025-01-14",
+      "yhat": 708.7844620099928,
+      "yhat_lower": 676.9148651656506,
+      "yhat_upper": 744.671914549008
+    },
+    {
+      "ds": "2025-01-15",
+      "yhat": 712.1388445872212,
+      "yhat_lower": 678.630494756726,
+      "yhat_upper": 745.1742140723397
+    },
+    {
+      "ds": "2025-01-16",
+      "yhat": 706.8349323886035,
+      "yhat_lower": 673.8073070462378,
+      "yhat_upper": 740.9480946323713
+    },
+    {
+      "ds": "2025-01-17",
+      "yhat": 707.7413610316011,
+      "yhat_lower": 674.6106274263248,
+      "yhat_upper": 743.714994448724
+    },
+    {
+      "ds": "2025-01-18",
+      "yhat": 704.0260717322841,
+      "yhat_lower": 667.4572929228038,
+      "yhat_upper": 737.7044692224428
+    },
+    {
+      "ds": "2025-01-19",
+      "yhat": 716.2856800825957,
+      "yhat_lower": 682.8823753823884,
+      "yhat_upper": 749.9940460062448
+    },
+    {
+      "ds": "2025-01-20",
+      "yhat": 711.7812378739598,
+      "yhat_lower": 678.0211532644255,
+      "yhat_upper": 744.8546223836631
+    },
+    {
+      "ds": "2025-01-21",
+      "yhat": 705.3895878667087,
+      "yhat_lower": 674.0946336384943,
+      "yhat_upper": 737.727969247782
+    },
+    {
+      "ds": "2025-01-22",
+      "yhat": 707.2482814377325,
+      "yhat_lower": 673.4099766630956,
+      "yhat_upper": 740.8235943087019
+    },
+    {
+      "ds": "2025-01-23",
+      "yhat": 700.6569216656377,
+      "yhat_lower": 666.9923470706711,
+      "yhat_upper": 736.99347267026
+    },
+    {
+      "ds": "2025-01-24",
+      "yhat": 700.513567445168,
+      "yhat_lower": 667.6350970080942,
+      "yhat_upper": 738.207015165523
+    },
+    {
+      "ds": "2025-01-25",
+      "yhat": 695.9976939251269,
+      "yhat_lower": 659.6048920061321,
+      "yhat_upper": 728.4998176011794
+    },
+    {
+      "ds": "2025-01-26",
+      "yhat": 707.7238244613433,
+      "yhat_lower": 673.3763390612845,
+      "yhat_upper": 740.0379459649458
+    },
+    {
+      "ds": "2025-01-27",
+      "yhat": 702.9408576312368,
+      "yhat_lower": 668.5576141031506,
+      "yhat_upper": 736.7299775652168
+    },
+    {
+      "ds": "2025-01-28",
+      "yhat": 696.5268845464086,
+      "yhat_lower": 664.74882149834,
+      "yhat_upper": 729.1893713471844
+    },
+    {
+      "ds": "2025-01-29",
+      "yhat": 698.6119652580494,
+      "yhat_lower": 663.0622256905427,
+      "yhat_upper": 730.6443022410353
+    }
+  ],
+  "amount_forecast": [
+    {
+      "ds": "2024-12-31",
+      "yhat": 911452.6110561548,
+      "yhat_lower": 841912.1719150189,
+      "yhat_upper": 983866.9458221623
+    },
+    {
+      "ds": "2025-01-01",
+      "yhat": 915735.3340005104,
+      "yhat_lower": 842671.6977529809,
+      "yhat_upper": 984968.0178566366
+    },
+    {
+      "ds": "2025-01-02",
+      "yhat": 916632.5997670994,
+      "yhat_lower": 849250.4103324864,
+      "yhat_upper": 982367.2069978977
+    },
+    {
+      "ds": "2025-01-03",
+      "yhat": 916262.8926098255,
+      "yhat_lower": 845578.7008693706,
+      "yhat_upper": 983242.493339008
+    },
+    {
+      "ds": "2025-01-04",
+      "yhat": 912680.80922814,
+      "yhat_lower": 837948.7107575678,
+      "yhat_upper": 981533.0858892261
+    },
+    {
+      "ds": "2025-01-05",
+      "yhat": 952828.4503555421,
+      "yhat_lower": 886089.2054160062,
+      "yhat_upper": 1020455.5152847044
+    },
+    {
+      "ds": "2025-01-06",
+      "yhat": 947291.0867149917,
+      "yhat_lower": 874265.0842385021,
+      "yhat_upper": 1018177.8102574452
+    },
+    {
+      "ds": "2025-01-07",
+      "yhat": 950765.4022756328,
+      "yhat_lower": 888143.5644174205,
+      "yhat_upper": 1021240.3642922753
+    },
+    {
+      "ds": "2025-01-08",
+      "yhat": 955423.2147457303,
+      "yhat_lower": 879294.8672173368,
+      "yhat_upper": 1024640.9380155712
+    },
+    {
+      "ds": "2025-01-09",
+      "yhat": 956103.6362685743,
+      "yhat_lower": 888406.4103729364,
+      "yhat_upper": 1021876.1619721442
+    },
+    {
+      "ds": "2025-01-10",
+      "yhat": 954942.8862752727,
+      "yhat_lower": 882064.9223418058,
+      "yhat_upper": 1023982.3581393815
+    },
+    {
+      "ds": "2025-01-11",
+      "yhat": 950019.0494597353,
+      "yhat_lower": 884573.3952533257,
+      "yhat_upper": 1018051.6585147629
+    },
+    {
+      "ds": "2025-01-12",
+      "yhat": 988383.7810970467,
+      "yhat_lower": 921380.9080542597,
+      "yhat_upper": 1057704.4803566907
+    },
+    {
+      "ds": "2025-01-13",
+      "yhat": 980533.1062381497,
+      "yhat_lower": 917098.7507450678,
+      "yhat_upper": 1052627.2331712435
+    },
+    {
+      "ds": "2025-01-14",
+      "yhat": 981304.0661433671,
+      "yhat_lower": 907981.8720900227,
+      "yhat_upper": 1047528.9955304873
+    },
+    {
+      "ds": "2025-01-15",
+      "yhat": 982920.3709804789,
+      "yhat_lower": 913054.7114393228,
+      "yhat_upper": 1057971.7017586678
+    },
+    {
+      "ds": "2025-01-16",
+      "yhat": 980282.8139589572,
+      "yhat_lower": 910811.3764601253,
+      "yhat_upper": 1055452.7000376945
+    },
+    {
+      "ds": "2025-01-17",
+      "yhat": 975604.4246968835,
+      "yhat_lower": 904045.0653181385,
+      "yhat_upper": 1040869.3794263355
+    },
+    {
+      "ds": "2025-01-18",
+      "yhat": 967036.0418546236,
+      "yhat_lower": 899398.5323926784,
+      "yhat_upper": 1036589.0221708091
+    },
+    {
+      "ds": "2025-01-19",
+      "yhat": 1001777.3265912911,
+      "yhat_lower": 934938.7420818179,
+      "yhat_upper": 1071195.1361053092
+    },
+    {
+      "ds": "2025-01-20",
+      "yhat": 990261.9773331914,
+      "yhat_lower": 917190.8362401767,
+      "yhat_upper": 1062467.001498839
+    },
+    {
+      "ds": "2025-01-21",
+      "yhat": 987482.3639292791,
+      "yhat_lower": 918789.3651988001,
+      "yhat_upper": 1054544.5889874185
+    },
+    {
+      "ds": "2025-01-22",
+      "yhat": 985717.0053784982,
+      "yhat_lower": 915111.2175976534,
+      "yhat_upper": 1058850.0281323895
+    },
+    {
+      "ds": "2025-01-23",
+      "yhat": 979919.4363067697,
+      "yhat_lower": 914198.3413040705,
+      "yhat_upper": 1046353.5935603317
+    },
+    {
+      "ds": "2025-01-24",
+      "yhat": 972359.1955123711,
+      "yhat_lower": 905605.6963620635,
+      "yhat_upper": 1045417.5606811992
+    },
+    {
+      "ds": "2025-01-25",
+      "yhat": 961228.985627396,
+      "yhat_lower": 894445.1915511717,
+      "yhat_upper": 1025526.3769633238
+    },
+    {
+      "ds": "2025-01-26",
+      "yhat": 993836.0195816541,
+      "yhat_lower": 926581.4820350109,
+      "yhat_upper": 1061565.9623599702
+    },
+    {
+      "ds": "2025-01-27",
+      "yhat": 980502.8967503333,
+      "yhat_lower": 911181.3851519538,
+      "yhat_upper": 1051912.1502172423
+    },
+    {
+      "ds": "2025-01-28",
+      "yhat": 976321.6545821662,
+      "yhat_lower": 906184.4223518259,
+      "yhat_upper": 1045722.2336765017
+    },
+    {
+      "ds": "2025-01-29",
+      "yhat": 973564.6437440054,
+      "yhat_lower": 905590.3008561888,
+      "yhat_upper": 1043673.8743774878
+    }
+  ],
+  "metadata": {
+    "forecast_days": 30,
+    "training_days": 365,
+    "date_range": {
+      "start": "2024-01-01",
+      "end": "2024-12-30"
+    },
+    "avg_daily_count": 685.0,
+    "avg_daily_amount": 898463.0
+  }
+}

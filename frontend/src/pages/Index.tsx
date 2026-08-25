@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Mic, Shield, Workflow } from "lucide-react";
+import { ArrowRight, Mic, Shield, Workflow, TrendingUp, ScanSearch } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 import SectionWrapper from "@/components/landing/SectionWrapper";
@@ -17,13 +17,23 @@ const features = [
   },
   {
     icon: Shield,
-    title: "Privacy First",
-    description: "Everything runs locally. No data leaves your machine.",
+    title: "Fraud Detection",
+    description: "XGBoost classifier with SHAP explainability for real-time transaction risk scoring.",
   },
   {
     icon: Workflow,
     title: "Dual-AI Pipeline",
     description: "Text-to-SQL + Smart Synthesis for precise analytics.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Volume Forecasting",
+    description: "Prophet time-series models predict 30-day transaction trends with confidence bands.",
+  },
+  {
+    icon: ScanSearch,
+    title: "OCR Intelligence",
+    description: "Upload charts or screenshots — AI vision extracts and queries data instantly.",
   },
 ];
 
@@ -83,7 +93,7 @@ const Index = () => {
 
       {/* Features Grid */}
       <SectionWrapper>
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}

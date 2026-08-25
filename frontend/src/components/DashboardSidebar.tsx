@@ -6,6 +6,7 @@ import {
   Home,
   Trash2,
   Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -195,6 +196,17 @@ const DashboardSidebar = ({
                 >
                   <Home className="w-4 h-4" />
                   <span className="text-[13px]">Home</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  to="/predictions"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all"
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  <span className="text-[13px]">Predictions</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

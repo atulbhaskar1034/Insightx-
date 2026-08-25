@@ -1,0 +1,53 @@
+{
+  "auc_roc": 0.4398,
+  "fraud_precision": 0.0014,
+  "fraud_recall": 0.0312,
+  "fraud_f1": 0.0027,
+  "confusion_matrix": {
+    "true_negatives": 47740,
+    "false_positives": 2164,
+    "false_negatives": 93,
+    "true_positives": 3
+  },
+  "test_size": 50000,
+  "fraud_rate_test": 0.19,
+  "shap_importance": {
+    "amount_inr": 0.7673,
+    "hour_of_day": 0.4128,
+    "sender_bank": 0.376,
+    "sender_state": 0.3273,
+    "receiver_bank": 0.2901,
+    "transaction_type": 0.2184,
+    "device_type": 0.1742,
+    "sender_age_label": 0.1499,
+    "network_type": 0.1412,
+    "day_part": 0.1066,
+    "is_weekend": 0.0806,
+    "amount_tier": 0.0066
+  },
+  "feature_columns": [
+    "transaction_type",
+    "amount_inr",
+    "sender_bank",
+    "receiver_bank",
+    "device_type",
+    "network_type",
+    "sender_state",
+    "hour_of_day",
+    "is_weekend",
+    "day_part",
+    "amount_tier",
+    "sender_age_label"
+  ],
+  "categorical_columns": [
+    "transaction_type",
+    "sender_bank",
+    "receiver_bank",
+    "device_type",
+    "network_type",
+    "sender_state",
+    "day_part",
+    "amount_tier",
+    "sender_age_label"
+  ]
+}

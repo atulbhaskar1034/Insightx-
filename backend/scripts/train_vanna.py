@@ -2,17 +2,22 @@
 train_vanna.py — Train Vanna AI on the UPI Transactions SQLite Database.
 
 This script:
-  1. Initializes a local Vanna instance (Google Gemini + ChromaDB)
+  1. Initializes a local Vanna instance (Groq + ChromaDB)
   2. Connects to the local SQLite database (upi_transactions.db)
   3. Trains Vanna on DDL schema, data dictionary, business rules, and few-shot examples
 """
 
 import os
+import sys
 from pathlib import Path
+
+# Force UTF-8 stdout so unicode checkmarks print on Windows terminals
+sys.stdout.reconfigure(encoding="utf-8")
 
 from dotenv import load_dotenv
 from vanna.legacy.chromadb.chromadb_vector import ChromaDB_VectorStore
-from vanna.legacy.google.gemini_chat import GoogleGeminiChat
+from vanna.legacy.openai.openai_chat import OpenAI_Chat
+from openai import OpenAI
 
 # ── Path resolution (always relative to backend root) ────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -22,26 +27,30 @@ VECTOR_STORE_PATH = str(PROJECT_ROOT / "vector_store")
 # ── Load environment variables ────────────────────────────────────────────────
 load_dotenv(PROJECT_ROOT / ".env")
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY not found. Create a .env file in backend/ (see .env.example).")
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY not found. Create a .env file in backend/.")
 
 
-class MyVanna(ChromaDB_VectorStore, GoogleGeminiChat):
-    def __init__(self, config=None):
+class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
+    def __init__(self, client=None, config=None):
         ChromaDB_VectorStore.__init__(self, config=config)
-        GoogleGeminiChat.__init__(self, config=config)
+        OpenAI_Chat.__init__(self, client=client, config=config)
 
 
 # ============================================================
 # 1. INITIALIZE VANNA
 # ============================================================
 
-vn = MyVanna(config={
-    "api_key": GEMINI_API_KEY,
-    "model_name": GEMINI_MODEL,
+vanna_client = OpenAI(
+    api_key=GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
+
+vn = MyVanna(client=vanna_client, config={
+    "model": GROQ_MODEL,
     "path": VECTOR_STORE_PATH,
 })
 
@@ -431,7 +440,7 @@ print("[✓] Q50 trained")
 
 print("\n" + "=" * 50)
 print("  Vanna training complete!")
-print("  Model: gemini-2.0-flash (Google Gemini)")
+print(f"  Model: {GROQ_MODEL} (Groq)")
 print(f"  Vector Store: ChromaDB ({VECTOR_STORE_PATH})")
 print(f"  Database: {DB_PATH}")
 print("  Training items: DDL + Data Dictionary + 2 Business Rules + 15 Few-Shot Examples")

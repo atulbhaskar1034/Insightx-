@@ -98,7 +98,8 @@ export const ReportTemplate: React.FC<ReportTemplateProps> = ({ messages }) => {
                 {kpiMessages.length > 0 && (
                     <div className="flex flex-wrap gap-4 mb-10">
                         {kpiMessages.map(item => {
-                            const row = item.chartData[0];
+                            const row = item.chartData && item.chartData[0];
+                            if (!row) return null;
                             const keys = Object.keys(row);
                             const valKey = item.resolvedY || keys[keys.length - 1];
                             const val = row[valKey];

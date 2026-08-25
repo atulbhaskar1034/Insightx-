@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, MicOff, ImagePlus, X, Download } from "lucide-react";
+import { Send, Download } from "lucide-react";
 import { toast } from "sonner";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ChatMessage, { type Message } from "@/components/ChatMessage";
@@ -9,8 +9,6 @@ import { ReportTemplate } from "@/components/ReportTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import {
   askQuestion,
-  voiceAsk,
-  ocrAsk,
   createSession,
   getSessionMessages,
   type ApiResponse,
@@ -36,7 +34,7 @@ function apiResponseToMessageData(res: ApiResponse): Message["data"] {
 
 function buildChatHistory(messages: Message[]): ChatHistoryMessage[] {
   return messages
-    .filter((m) => m.content.trim() && !m.content.startsWith("\ud83c\udfa4 Voice"))
+    .filter((m) => m.content.trim())
     .map((m) => ({
       role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
       content: m.role === "ai" ? (m.data?.summary ?? m.content) : m.content,
@@ -60,15 +58,6 @@ const Dashboard = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
-
-  // Voice recording
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-
-  // Image upload
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -163,17 +152,8 @@ const Dashboard = () => {
       setInput("");
       setIsLoading(true);
 
-      const imgToSend = selectedImage;
-      setSelectedImage(null);
-
       try {
-        let res: ApiResponse;
-        if (imgToSend) {
-          res = await ocrAsk(imgToSend, question, history);
-          toast.success("Image analysed successfully");
-        } else {
-          res = await askQuestion(question, history, sid);
-        }
+        const res = await askQuestion(question, history, sid);
 
         const data = apiResponseToMessageData(res);
         const aiMsg: Message = {
@@ -208,13 +188,13 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     },
-    [isLoading, selectedImage, messages, ensureSession],
+    [isLoading, messages, ensureSession],
   );
 
   const handleSend = () => {
-    const question = input.trim() || (selectedImage ? "Analyse this image" : "");
-    if (!question && !selectedImage) return;
-    sendQuestion(question);
+    const q = input.trim();
+    if (!q) return;
+    sendQuestion(q);
   };
 
   // -- New Chat ---------------------------------------------------------------
@@ -225,58 +205,6 @@ const Dashboard = () => {
     setInput("");
     navigate("/dashboard");
   }, [navigate]);
-
-  // -- Voice Recording --------------------------------------------------------
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
-      audioChunksRef.current = [];
-      mr.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        setIsLoading(true);
-        const history = buildChatHistory(messages);
-        const userMsg: Message = { id: Date.now().toString(), role: "user", content: "\ud83c\udfa4 Voice query..." };
-        setMessages((prev) => [...prev, userMsg]);
-        try {
-          const res = await voiceAsk(blob, history);
-          setMessages((prev) =>
-            prev.map((m) => (m.id === userMsg.id ? { ...m, content: `\ud83c\udfa4 "${res.transcription}"` } : m)),
-          );
-          const data = apiResponseToMessageData(res);
-          const aiMsg: Message = {
-            id: (Date.now() + 1).toString(),
-            role: "ai",
-            content: res.answer,
-            data,
-            onFollowUp: (q) => sendQuestion(q),
-          };
-          setMessages((prev) => [...prev, aiMsg]);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Transcription failed";
-          toast.error(msg);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      mr.start();
-      mediaRecorderRef.current = mr;
-      setIsRecording(true);
-    } catch {
-      toast.error("Microphone access denied.");
-    }
-  };
-
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
-  };
-  const toggleRecording = () => (isRecording ? stopRecording() : startRecording());
 
   // -- PDF Export --------------------------------------------------------------
 
@@ -305,17 +233,6 @@ const Dashboard = () => {
       console.error(err);
       toast.error("Failed to generate PDF.");
     }
-  };
-
-  // -- Image Upload -----------------------------------------------------------
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      toast.info(`Image selected: ${file.name}`);
-    }
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // -- Render -----------------------------------------------------------------
@@ -360,7 +277,7 @@ const Dashboard = () => {
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
                   <div className="w-16 h-16 rounded-2xl glow-button flex items-center justify-center text-2xl font-bold mb-6 mx-auto">IX</div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">Welcome to InsightX</h2>
-                  <p className="text-muted-foreground max-w-md">Ask anything about your UPI transactions — by text, voice, or image.</p>
+                  <p className="text-muted-foreground max-w-md">Ask anything about your UPI transactions to get started.</p>
                   <div className="flex flex-wrap gap-2 mt-6 justify-center">
                     {SUGGESTIONS.map((q) => (
                       <button
@@ -399,78 +316,21 @@ const Dashboard = () => {
           {/* Input Area */}
           <div id="insightx-input-area" className="sticky bottom-0 px-4 md:px-8 py-4 bg-gradient-to-t from-background via-background to-background/0">
             <div className="max-w-3xl mx-auto space-y-2">
-              {selectedImage && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary/60 w-fit text-sm text-muted-foreground border border-border/40">
-                  <ImagePlus className="w-3.5 h-3.5" />
-                  <span className="truncate max-w-[200px] font-medium">{selectedImage.name}</span>
-                  <button
-                    onClick={() => {
-                      setSelectedImage(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="p-1 hover:bg-background rounded-md transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
               <div className="relative flex items-center gap-2 bg-secondary/40 border border-border/50 rounded-2xl p-2 backdrop-blur-md shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30 transition-all">
-                <button
-                  onClick={toggleRecording}
-                  disabled={isLoading || !!selectedImage}
-                  className={`p-2.5 rounded-xl transition-all ${isRecording
-                    ? "bg-red-500/10 text-red-500 hover:bg-red-500/20 glow-pulse"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary disabled:opacity-40"
-                    }`}
-                  title={isRecording ? "Stop recording" : "Use voice input"}
-                >
-                  {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                </button>
-
-                <button
-                  onClick={() => fileInputRef.current?.click()}
+                
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  placeholder={"Ask about your transaction history…"}
                   disabled={isLoading}
-                  className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-all disabled:opacity-40"
-                  title="Upload image for OCR analysis"
-                >
-                  <ImagePlus className="w-5 h-5" />
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/bmp" className="hidden" onChange={handleImageChange} />
-
-                {isRecording ? (
-                  <div className="flex-1 flex items-center px-4 overflow-hidden h-10">
-                    <span className="text-red-500 font-medium text-sm animate-pulse mr-3 whitespace-nowrap">
-                      Recording...
-                    </span>
-                    <div className="flex-1 flex items-center h-full gap-1 flex-nowrap overflow-hidden">
-                      {Array.from({ length: 40 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-1.5 bg-red-400 rounded-full animate-waveform opacity-80"
-                          style={{
-                            height: `${Math.max(10, Math.random() * 100)}%`,
-                            animationDelay: `${Math.random() * 0.5}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder={selectedImage ? "Add context or press send to analyse the image…" : "Ask about your transaction history…"}
-                    disabled={isRecording}
-                    className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm py-2 disabled:opacity-40"
-                  />
-                )}
+                  className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground text-sm py-2 disabled:opacity-40 px-3"
+                />
 
                 <button
                   onClick={handleSend}
-                  disabled={(!input.trim() && !selectedImage) || isLoading || isRecording}
+                  disabled={!input.trim() || isLoading}
                   className="p-2.5 rounded-xl glow-button text-primary-foreground disabled:opacity-30 disabled:shadow-none transition-all"
                 >
                   <Send className="w-4 h-4" />

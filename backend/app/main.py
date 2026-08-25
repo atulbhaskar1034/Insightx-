@@ -1,16 +1,21 @@
-﻿"""
-app/main.py -- InsightX Agentic API (Dual-AI Pipeline).
+"""
+app/main.py -- InsightX Agentic API (Dual-AI Pipeline + ML Models).
 
 Pipeline:
   User Question -> Vanna AI (Local ChromaDB + Groq LLM for SQL)
   -> Groq LLM (Executive Summary + Follow-ups)
   -> Unified JSON Response
 
+ML Models:
+  XGBoost Fraud Detection Classifier (with SHAP explainability)
+  Prophet Time-Series Forecasting (30-day transaction volume prediction)
+
 No external Vanna API key needed -- all training data lives in local ChromaDB.
 """
 
 import json
 import os
+import base64
 import tempfile
 import sys
 
@@ -21,15 +26,12 @@ import traceback
 
 from app import chat_db
 
-# Add scripts directory to path to import EasyOCRModel
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(BASE_DIR)
-sys.path.append(os.path.join(PROJECT_ROOT, "scripts"))
 
 import numpy as np
 import pandas as pd
 import uvicorn
-import whisper  # type: ignore  # Package: openai-whisper
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,12 +41,6 @@ from openai import OpenAI
 from pydantic import BaseModel
 from vanna.legacy.chromadb.chromadb_vector import ChromaDB_VectorStore
 from vanna.legacy.openai.openai_chat import OpenAI_Chat
-
-try:
-    from ocr_easyocr import EasyOCRModel
-except ImportError:
-    print("[!] Could not import EasyOCRModel. Make sure easyocr is installed.")
-    EasyOCRModel = None
 
 # -- Path Resolution -----------------------------------------------------------
 
@@ -90,22 +86,36 @@ print(f"[OK] Connected to SQLite: {DB_PATH}")
 groq_client = Groq(api_key=GROQ_API_KEY)
 print(f"[OK] Groq LLM initialized (model: {GROQ_MODEL})")
 
-# -- Whisper STT Model ---------------------------------------------------------
+# -- ML Models -----------------------------------------------------------------
 
-WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "base")
-print(f"Loading Whisper '{WHISPER_MODEL_NAME}' model...")
-whisper_model = whisper.load_model(WHISPER_MODEL_NAME)
-print(f"[OK] Whisper STT initialized (model: {WHISPER_MODEL_NAME})")
+MODEL_DIR = os.path.join(PROJECT_ROOT, "models")
+fraud_model = None
+fraud_encoders = None
+forecast_data = None
 
-# -- OCR Model (EasyOCR) ------------------------------------------------------
-
-print("Loading EasyOCR model...")
 try:
-    ocr_model = EasyOCRModel(languages=['en'], gpu=False)
-    print("[OK] EasyOCR initialized")
+    import joblib
+    fraud_model_path = os.path.join(MODEL_DIR, "fraud_model.joblib")
+    fraud_encoders_path = os.path.join(MODEL_DIR, "fraud_encoders.joblib")
+    if os.path.exists(fraud_model_path) and os.path.exists(fraud_encoders_path):
+        fraud_model = joblib.load(fraud_model_path)
+        fraud_encoders = joblib.load(fraud_encoders_path)
+        print("[OK] Fraud detection model loaded")
+    else:
+        print("[!] Fraud model not found. Run: python scripts/train_fraud_model.py")
 except Exception as e:
-    print(f"[!] OCR Init Failed: {e}")
-    ocr_model = None
+    print(f"[!] Fraud model load failed: {e}")
+
+try:
+    forecast_data_path = os.path.join(MODEL_DIR, "forecast_data.json")
+    if os.path.exists(forecast_data_path):
+        with open(forecast_data_path, "r") as f:
+            forecast_data = json.load(f)
+        print("[OK] Forecast data loaded")
+    else:
+        print("[!] Forecast data not found. Run: python scripts/train_forecast_model.py")
+except Exception as e:
+    print(f"[!] Forecast data load failed: {e}")
 
 # -- Chat History DB -----------------------------------------------------------
 
@@ -116,9 +126,11 @@ print("[OK] Chat history database initialized")
 
 app = FastAPI(title="InsightX Agentic API")
 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL] if FRONTEND_URL != "*" else ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -227,7 +239,7 @@ async def ask_insightx(request: QueryRequest):
                 )
             }],
             temperature=0.0,
-            max_tokens=5,
+            max_tokens=1024,
         )
         intent = intent_check.choices[0].message.content.strip().upper()
 
@@ -392,125 +404,175 @@ async def ask_insightx(request: QueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# -- Speech-to-Text Endpoint --------------------------------------------------
+# -- ML: Fraud Prediction Endpoint ---------------------------------------------
 
-@app.post("/api/transcribe")
-async def transcribe_audio(audio: UploadFile = File(...)):
-    """Accepts audio file upload and returns transcribed text using local Whisper."""
-    ALLOWED_TYPES = {
-        "audio/wav", "audio/x-wav", "audio/wave",
-        "audio/webm", "audio/ogg", "audio/mpeg", "audio/mp3",
-        "audio/mp4", "audio/x-m4a", "audio/aac",
-        "video/webm",
-    }
+FRAUD_FEATURE_COLS = [
+    "transaction_type", "amount_inr", "sender_bank", "receiver_bank",
+    "device_type", "network_type", "sender_state", "hour_of_day",
+    "is_weekend", "day_part", "amount_tier", "sender_age_label",
+]
 
-    if audio.content_type and audio.content_type not in ALLOWED_TYPES:
+FRAUD_CATEGORICAL_COLS = [
+    "transaction_type", "sender_bank", "receiver_bank", "device_type",
+    "network_type", "sender_state", "day_part", "amount_tier", "sender_age_label",
+]
+
+
+class FraudPredictionRequest(BaseModel):
+    transaction_type: str = "P2M"
+    amount_inr: int = 5000
+    sender_bank: str = "SBI"
+    receiver_bank: str = "HDFC"
+    device_type: str = "Android"
+    network_type: str = "4G"
+    sender_state: str = "Delhi"
+    hour_of_day: int = 14
+    is_weekend: int = 0
+    day_part: str = "Afternoon"
+    amount_tier: str = "Medium (₹500-5000)"
+    sender_age_label: str = "Adult (26-55)"
+
+
+@app.post("/api/predict-fraud")
+async def predict_fraud(request: FraudPredictionRequest):
+    """Predict fraud probability for a transaction using XGBoost + SHAP."""
+    if fraud_model is None or fraud_encoders is None:
         raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported audio type: {audio.content_type}. Accepted: wav, webm, mp3, ogg, m4a.",
+            status_code=503,
+            detail="Fraud model not available. Run: python scripts/train_fraud_model.py",
         )
 
     try:
-        suffix = ".webm"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            contents = await audio.read()
-            tmp.write(contents)
-            tmp_path = tmp.name
+        # Build feature vector
+        input_data = {
+            "transaction_type": request.transaction_type,
+            "amount_inr": request.amount_inr,
+            "sender_bank": request.sender_bank,
+            "receiver_bank": request.receiver_bank,
+            "device_type": request.device_type,
+            "network_type": request.network_type,
+            "sender_state": request.sender_state,
+            "hour_of_day": request.hour_of_day,
+            "is_weekend": request.is_weekend,
+            "day_part": request.day_part,
+            "amount_tier": request.amount_tier,
+            "sender_age_label": request.sender_age_label,
+        }
 
-        result = whisper_model.transcribe(tmp_path)
-        transcription = result["text"].strip()
-        os.unlink(tmp_path)
+        # Encode categorical features
+        encoded = input_data.copy()
+        for col in FRAUD_CATEGORICAL_COLS:
+            le = fraud_encoders.get(col)
+            if le is not None:
+                val = str(encoded[col])
+                if val in le.classes_:
+                    encoded[col] = le.transform([val])[0]
+                else:
+                    encoded[col] = 0  # Unknown category fallback
 
-        return {"transcription": transcription}
+        # Create feature array
+        features = np.array([[encoded[col] for col in FRAUD_FEATURE_COLS]])
 
+        # Predict
+        probability = float(fraud_model.predict_proba(features)[0][1])
+        prediction = int(probability >= 0.5)
+
+        # SHAP explanation
+        shap_contributions = {}
+        try:
+            import shap
+            explainer = shap.TreeExplainer(fraud_model)
+            shap_values = explainer.shap_values(features)
+            for i, col in enumerate(FRAUD_FEATURE_COLS):
+                shap_contributions[col] = round(float(shap_values[0][i]), 4)
+            # Sort by absolute impact
+            shap_contributions = dict(
+                sorted(shap_contributions.items(), key=lambda x: abs(x[1]), reverse=True)
+            )
+        except Exception:
+            pass
+
+        risk_level = "Low" if probability < 0.3 else "Medium" if probability < 0.7 else "High"
+
+        return {
+            "fraud_probability": round(probability, 4),
+            "prediction": "FRAUD" if prediction else "LEGITIMATE",
+            "risk_level": risk_level,
+            "shap_contributions": shap_contributions,
+            "input_features": input_data,
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Fraud prediction failed: {str(e)}")
 
 
-@app.post("/api/voice-ask")
-async def voice_ask(audio: UploadFile = File(...)):
-    """Combined: Transcribe audio -> run full Dual-AI Pipeline."""
-    transcription_response = await transcribe_audio(audio)
-    transcription = transcription_response["transcription"]
-
-    if not transcription:
-        raise HTTPException(status_code=400, detail="Could not transcribe any speech from the audio.")
-
-    pipeline_result = await ask_insightx(QueryRequest(question=transcription))
-    pipeline_result["transcription"] = transcription
-    return pipeline_result
-
-
-# -- OCR / Image Endpoint -----------------------------------------------------
-
-@app.post("/api/ocr-ask")
-async def ocr_ask(
-    image: UploadFile = File(...),
-    text: Optional[str] = Form(None)
-):
-    """Accepts image + optional text -> OCR -> Groq interpretation -> Vanna Pipeline."""
-    if ocr_model is None:
-        raise HTTPException(status_code=503, detail="OCR service is not available.")
-
-    ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/bmp"}
-    if image.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail=f"Unsupported image type: {image.content_type}")
-
+@app.get("/api/fraud-stats")
+async def fraud_stats():
+    """Return pre-computed fraud statistics for the dashboard."""
     try:
-        suffix = os.path.splitext(image.filename)[1] or ".jpg"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            contents = await image.read()
-            tmp.write(contents)
-            tmp_path = tmp.name
+        import sqlite3
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
 
-        print(f"Running OCR on {tmp_path}...")
-        extracted_text = ocr_model.extract_text(tmp_path)
-        os.unlink(tmp_path)
+        stats = {}
 
-        if not extracted_text or len(extracted_text.strip()) < 5:
-            raise HTTPException(status_code=400, detail="No readable text found in the image.")
+        # Overall fraud rate
+        row = conn.execute(
+            "SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions"
+        ).fetchone()
+        stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
+        stats["total_transactions"] = row["total"]
+        stats["fraud_count"] = row["fraud_count"]
 
-        print(f"OCR Extracted: {extracted_text[:100]}...")
+        # Fraud rate by bank
+        rows = conn.execute(
+            "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+            "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
+        ).fetchall()
+        stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
+                             "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-        base_prompt = (
-            f"I have extracted the following text from an image (chart, report, or screenshot):\n"
-            f"\"\"\"{extracted_text}\"\"\"\n"
-        )
+        # Fraud rate by time of day
+        rows = conn.execute(
+            "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+            "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
+        ).fetchall()
+        stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                                 "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-        if text and text.strip():
-            base_prompt += f"\nThe user also provided this specific note/question: \"{text}\"\n"
-            task_instruction = (
-                "Task: Combine the image text and the user's note to formulate a single, clear, "
-                "and specific business question that can be answered by querying the 'upi_transactions' database.\n"
-                "Prioritize the user's note if it refines the context."
-            )
-        else:
-            task_instruction = (
-                "Task: Based on this text, formulate a single, clear, and specific business question "
-                "that can be answered by querying the 'upi_transactions' database."
-            )
+        # Fraud rate by network
+        rows = conn.execute(
+            "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+            "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
+        ).fetchall()
+        stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
+                                "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-        interpretation_prompt = f"{base_prompt}\n{task_instruction}\nReturn ONLY the question, nothing else."
-
-        groq_resp = groq_client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": interpretation_prompt}],
-            temperature=0.3,
-            max_tokens=100,
-        )
-        formulated_question = groq_resp.choices[0].message.content.strip()
-        print(f"Formulated Question: {formulated_question}")
-
-        pipeline_result = await ask_insightx(QueryRequest(question=formulated_question))
-        pipeline_result["ocr_text"] = extracted_text
-        pipeline_result["original_question"] = formulated_question
-
-        return pipeline_result
+        conn.close()
+        return stats
 
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"OCR pipeline failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# -- ML: Forecast Endpoint -----------------------------------------------------
+
+@app.get("/api/forecast")
+async def get_forecast():
+    """Return 30-day transaction volume forecast."""
+    if forecast_data is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Forecast data not available. Run: python scripts/train_forecast_model.py",
+        )
+    return forecast_data
 
 
 # -- Session CRUD Endpoints ----------------------------------------------------

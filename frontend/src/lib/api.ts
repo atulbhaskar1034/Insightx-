@@ -12,9 +12,6 @@ export interface ApiResponse {
     chart_type?: string;
     x_axis?: string | null;
     y_axis?: string | null;
-    transcription?: string;
-    ocr_text?: string;
-    original_question?: string;
 }
 
 export interface ChatHistoryMessage {
@@ -38,7 +35,7 @@ export interface StoredMessage {
     created_at: string;
 }
 
-const BASE_URL = "/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 // -- Text Query ---------------------------------------------------------------
 
@@ -63,50 +60,59 @@ export async function askQuestion(
     return res.json();
 }
 
-// -- Voice Query --------------------------------------------------------------
+// -- ML: Fraud Prediction -----------------------------------------------------
 
-export async function voiceAsk(
-    audioBlob: Blob,
-    chatHistory: ChatHistoryMessage[] = [],
-): Promise<ApiResponse> {
-    const form = new FormData();
-    form.append("audio", audioBlob, "recording.webm");
-    if (chatHistory.length > 0) {
-        form.append("chat_history", JSON.stringify(chatHistory));
-    }
-
-    const res = await fetch(`${BASE_URL}/voice-ask`, {
+export async function predictFraud(
+    features: Record<string, string | number>,
+): Promise<{
+    fraud_probability: number;
+    prediction: string;
+    risk_level: string;
+    shap_contributions: Record<string, number>;
+    input_features: Record<string, unknown>;
+}> {
+    const res = await fetch(`${BASE_URL}/predict-fraud`, {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(features),
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail ?? `Voice request failed (${res.status})`);
+        throw new Error(err.detail ?? `Fraud prediction failed (${res.status})`);
     }
     return res.json();
 }
 
-// -- OCR / Image Query --------------------------------------------------------
+// -- ML: Forecast -------------------------------------------------------------
 
-export async function ocrAsk(
-    imageFile: File,
-    text?: string,
-    chatHistory: ChatHistoryMessage[] = [],
-): Promise<ApiResponse> {
-    const form = new FormData();
-    form.append("image", imageFile);
-    if (text?.trim()) form.append("text", text.trim());
-    if (chatHistory.length > 0) {
-        form.append("chat_history", JSON.stringify(chatHistory));
-    }
-
-    const res = await fetch(`${BASE_URL}/ocr-ask`, {
-        method: "POST",
-        body: form,
-    });
+export async function getForecast(): Promise<{
+    historical: { date: string; txn_count: number; total_amount: number }[];
+    count_forecast: { ds: string; yhat: number; yhat_lower: number; yhat_upper: number }[];
+    amount_forecast: { ds: string; yhat: number; yhat_lower: number; yhat_upper: number }[];
+    metadata: Record<string, unknown>;
+}> {
+    const res = await fetch(`${BASE_URL}/forecast`);
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail ?? `OCR request failed (${res.status})`);
+        throw new Error(err.detail ?? `Forecast request failed (${res.status})`);
+    }
+    return res.json();
+}
+
+// -- ML: Fraud Stats ----------------------------------------------------------
+
+export async function getFraudStats(): Promise<{
+    overall_fraud_rate: number;
+    total_transactions: number;
+    fraud_count: number;
+    by_bank: { bank: string; fraud_rate: number; fraud_count: number; total: number }[];
+    by_day_part: { day_part: string; fraud_rate: number; fraud_count: number; total: number }[];
+    by_network: { network: string; fraud_rate: number; fraud_count: number; total: number }[];
+}> {
+    const res = await fetch(`${BASE_URL}/fraud-stats`);
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail ?? `Fraud stats failed (${res.status})`);
     }
     return res.json();
 }
@@ -158,3 +164,4 @@ export function dataToTable(
     );
     return { columns, rows };
 }
+
