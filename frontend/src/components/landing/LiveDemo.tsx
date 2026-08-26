@@ -52,9 +52,21 @@ const prompts = [
   },
 ];
 
+const TOOLTIP_STYLE: React.CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: "10px",
+  color: "#111827",
+  fontSize: "13px",
+  padding: "10px 14px",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+};
+
 const LiveDemo = () => {
   const [activePrompt, setActivePrompt] = useState<number | null>(null);
-  const [phase, setPhase] = useState<"idle" | "typing" | "loading" | "result">("idle");
+  const [phase, setPhase] = useState<"idle" | "typing" | "loading" | "result">(
+    "idle"
+  );
 
   const handleClick = (index: number) => {
     if (phase !== "idle" && phase !== "result") return;
@@ -69,41 +81,60 @@ const LiveDemo = () => {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Mock Chat Window */}
-      <div className="glass-card overflow-hidden min-h-[340px] flex flex-col">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden min-h-[340px] flex flex-col">
         {/* Chat Header */}
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-border/30">
+        <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100 bg-gray-50/50">
           <div className="w-6 h-6 rounded-md glow-button flex items-center justify-center text-[8px] font-bold">
             IX
           </div>
-          <span className="text-sm font-medium text-foreground">InsightX Agent</span>
+          <span className="text-sm font-medium text-gray-900">
+            InsightX Agent
+          </span>
           <span className="ml-auto w-2 h-2 rounded-full bg-green-400 animate-pulse" />
         </div>
 
         {/* Chat Body */}
-        <div className="flex-1 p-5 space-y-4">
+        <div className="flex-1 p-5 space-y-4 bg-gray-50/30">
           <AnimatePresence mode="wait">
             {phase === "idle" && (
               <motion.p
                 key="idle"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
-                className="text-sm text-muted-foreground text-center pt-16"
+                className="text-sm text-gray-400 text-center pt-16"
               >
                 Click a prompt below to see InsightX in action ↓
               </motion.p>
             )}
 
-            {(phase === "typing" || phase === "loading" || phase === "result") && prompt && (
-              <motion.div key="user" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
-                <div className="chat-user-msg px-4 py-2.5 max-w-[75%]">
-                  <p className="text-sm text-foreground">{prompt.label.replace(/^.{2} /, "")}</p>
-                </div>
-              </motion.div>
-            )}
+            {(phase === "typing" ||
+              phase === "loading" ||
+              phase === "result") &&
+              prompt && (
+                <motion.div
+                  key="user"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-end"
+                >
+                  <div className="px-4 py-2.5 max-w-[75%] bg-gray-900 text-white rounded-2xl rounded-br-md">
+                    <p className="text-sm">
+                      {prompt.label.replace(/^.{2} /, "")}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
 
             {phase === "loading" && (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                <div className="w-6 h-6 rounded-md glow-button flex items-center justify-center text-[8px] font-bold shrink-0">IX</div>
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex gap-3"
+              >
+                <div className="w-6 h-6 rounded-md glow-button flex items-center justify-center text-[8px] font-bold shrink-0">
+                  IX
+                </div>
                 <div className="space-y-2 flex-1 max-w-[75%]">
                   <div className="skeleton-shimmer h-4 rounded-md w-3/4" />
                   <div className="skeleton-shimmer h-4 rounded-md w-1/2" />
@@ -113,28 +144,66 @@ const LiveDemo = () => {
             )}
 
             {phase === "result" && prompt && (
-              <motion.div key="result" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex gap-3">
-                <div className="w-6 h-6 rounded-md glow-button flex items-center justify-center text-[8px] font-bold shrink-0">IX</div>
-                <div className="chat-ai-msg p-4 flex-1 max-w-[80%] space-y-3">
-                  <p className="text-sm text-foreground">{prompt.response}</p>
-                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.4 }}>
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex gap-3"
+              >
+                <div className="w-6 h-6 rounded-md glow-button flex items-center justify-center text-[8px] font-bold shrink-0">
+                  IX
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-4 flex-1 max-w-[80%] space-y-3 shadow-sm">
+                  <p className="text-sm text-gray-700">{prompt.response}</p>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
                     <div className="h-44">
                       <ResponsiveContainer width="100%" height="100%">
                         {prompt.chartType === "line" ? (
                           <LineChart data={prompt.data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(228, 15%, 18%)" />
-                            <XAxis dataKey="name" tick={{ fill: "hsl(215, 15%, 55%)", fontSize: 11 }} />
-                            <YAxis tick={{ fill: "hsl(215, 15%, 55%)", fontSize: 11 }} />
-                            <Tooltip contentStyle={{ background: "hsl(228, 20%, 10%)", border: "1px solid hsl(228, 15%, 22%)", borderRadius: "8px", color: "hsl(210, 40%, 93%)" }} />
-                            <Line type="monotone" dataKey="value" stroke="hsl(174, 70%, 45%)" strokeWidth={2} dot={{ fill: "hsl(174, 70%, 45%)", r: 3 }} />
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#f3f4f6"
+                            />
+                            <XAxis
+                              dataKey="name"
+                              tick={{ fill: "#9ca3af", fontSize: 11 }}
+                            />
+                            <YAxis
+                              tick={{ fill: "#9ca3af", fontSize: 11 }}
+                            />
+                            <Tooltip contentStyle={TOOLTIP_STYLE} />
+                            <Line
+                              type="monotone"
+                              dataKey="value"
+                              stroke="#f97316"
+                              strokeWidth={2}
+                              dot={{ fill: "#f97316", r: 3 }}
+                            />
                           </LineChart>
                         ) : (
                           <BarChart data={prompt.data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(228, 15%, 18%)" />
-                            <XAxis dataKey="name" tick={{ fill: "hsl(215, 15%, 55%)", fontSize: 11 }} />
-                            <YAxis tick={{ fill: "hsl(215, 15%, 55%)", fontSize: 11 }} />
-                            <Tooltip contentStyle={{ background: "hsl(228, 20%, 10%)", border: "1px solid hsl(228, 15%, 22%)", borderRadius: "8px", color: "hsl(210, 40%, 93%)" }} />
-                            <Bar dataKey="value" fill="hsl(250, 80%, 62%)" radius={[4, 4, 0, 0]} />
+                            <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#f3f4f6"
+                            />
+                            <XAxis
+                              dataKey="name"
+                              tick={{ fill: "#9ca3af", fontSize: 11 }}
+                            />
+                            <YAxis
+                              tick={{ fill: "#9ca3af", fontSize: 11 }}
+                            />
+                            <Tooltip contentStyle={TOOLTIP_STYLE} />
+                            <Bar
+                              dataKey="value"
+                              fill="#f97316"
+                              radius={[4, 4, 0, 0]}
+                            />
                           </BarChart>
                         )}
                       </ResponsiveContainer>
@@ -153,10 +222,10 @@ const LiveDemo = () => {
           <button
             key={i}
             onClick={() => handleClick(i)}
-            className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-300 ${
+            className={`px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-300 cursor-pointer ${
               activePrompt === i
-                ? "border-primary/50 bg-primary/10 text-foreground shadow-lg shadow-primary/10"
-                : "border-border/50 bg-card/40 text-muted-foreground hover:border-primary/30 hover:bg-card/60"
+                ? "border-orange-300 bg-orange-50 text-orange-700 shadow-md shadow-orange-100"
+                : "border-gray-200 bg-white text-gray-500 hover:border-orange-200 hover:bg-orange-50/50 hover:text-gray-700"
             }`}
           >
             {p.label}

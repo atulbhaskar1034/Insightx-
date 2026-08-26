@@ -30,31 +30,31 @@ interface DataVisualizerProps {
   textContent?: string;
 }
 
-// -- Dark-mode color palette --------------------------------------------------
+// -- Light-mode color palette -------------------------------------------------
 
 const CHART_COLORS = [
+  "#f97316", // orange-500
+  "#06b6d4", // cyan-500
+  "#ec4899", // pink-500
   "#8b5cf6", // violet-500
-  "#3b82f6", // blue-500
   "#10b981", // emerald-500
+  "#3b82f6", // blue-500
   "#f59e0b", // amber-500
   "#f43f5e", // rose-500
-  "#06b6d4", // cyan-500
-  "#a78bfa", // violet-400
-  "#60a5fa", // blue-400
 ];
 
 const TOOLTIP_STYLE: React.CSSProperties = {
-  background: "rgba(15, 23, 42, 0.95)",
-  border: "1px solid rgba(148, 163, 184, 0.2)",
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
   borderRadius: "10px",
-  color: "#e2e8f0",
+  color: "#111827",
   fontSize: "13px",
   padding: "10px 14px",
-  boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
 };
 
-const AXIS_TICK = { fill: "#94a3b8", fontSize: 12 };
-const GRID_STROKE = "rgba(148, 163, 184, 0.08)";
+const AXIS_TICK = { fill: "#9ca3af", fontSize: 12 };
+const GRID_STROKE = "#f3f4f6";
 
 // -- Helpers ------------------------------------------------------------------
 
@@ -90,7 +90,7 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
   if (!data || data.length === 0) {
     if (textContent) {
       return (
-        <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
           {textContent}
         </p>
       );
@@ -110,16 +110,16 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-6 px-4">
         {labelKey && (
-          <span className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+          <span className="text-xs text-gray-400 uppercase tracking-wider mb-2">
             {String(row[labelKey])}
           </span>
         )}
-        <span className="text-6xl font-extrabold text-cyan-400 drop-shadow-md">
+        <span className="text-6xl font-extrabold landing-stat-gradient-orange drop-shadow-sm">
           {typeof rawValue === "number" && isCurrencyKey(valueKey)
             ? `\u20b9${rawValue.toLocaleString("en-IN")}`
             : formatValue(rawValue)}
         </span>
-        <span className="text-xs text-muted-foreground mt-2 uppercase tracking-wider">
+        <span className="text-xs text-gray-400 mt-2 uppercase tracking-wider">
           {valueKey.replace(/_/g, " ")}
         </span>
       </div>
@@ -169,7 +169,7 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
     }));
 
     return (
-      <div className="w-full bg-slate-900/50 border border-slate-800/60 rounded-xl p-4">
+      <div className="w-full bg-gray-50 border border-gray-100 rounded-xl p-4">
         <ResponsiveContainer width="100%" height={400}>
           {chartType === "bar" ? (
             <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
@@ -177,21 +177,21 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
               <XAxis
                 dataKey={resolvedX}
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "rgba(148,163,184,0.15)" }}
+                axisLine={{ stroke: "#e5e7eb" }}
                 tickLine={false}
               />
               <YAxis
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "rgba(148,163,184,0.15)" }}
+                axisLine={{ stroke: "#e5e7eb" }}
                 tickLine={false}
                 tickFormatter={(v: number) => v.toLocaleString("en-IN")}
               />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
                 formatter={(value: number) => [value.toLocaleString("en-IN"), resolvedY!.replace(/_/g, " ")]}
-                cursor={{ fill: "rgba(148, 163, 184, 0.06)" }}
+                cursor={{ fill: "rgba(249, 115, 22, 0.04)" }}
               />
-              <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
+              <Legend wrapperStyle={{ color: "#6b7280", fontSize: "12px" }} />
               <Bar
                 dataKey={resolvedY!}
                 fill={CHART_COLORS[0]}
@@ -205,12 +205,12 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
               <XAxis
                 dataKey={resolvedX}
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "rgba(148,163,184,0.15)" }}
+                axisLine={{ stroke: "#e5e7eb" }}
                 tickLine={false}
               />
               <YAxis
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "rgba(148,163,184,0.15)" }}
+                axisLine={{ stroke: "#e5e7eb" }}
                 tickLine={false}
                 tickFormatter={(v: number) => v.toLocaleString("en-IN")}
               />
@@ -218,7 +218,7 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
                 contentStyle={TOOLTIP_STYLE}
                 formatter={(value: number) => [value.toLocaleString("en-IN"), resolvedY!.replace(/_/g, " ")]}
               />
-              <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
+              <Legend wrapperStyle={{ color: "#6b7280", fontSize: "12px" }} />
               <Line
                 type="monotone"
                 dataKey={resolvedY!}
@@ -245,7 +245,7 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
                 label={({ name, percent }: { name: string; percent: number }) =>
                   `${name} (${(percent * 100).toFixed(1)}%)`
                 }
-                labelLine={{ stroke: "#94a3b8", strokeWidth: 1 }}
+                labelLine={{ stroke: "#9ca3af", strokeWidth: 1 }}
               >
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
@@ -255,7 +255,7 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
                 contentStyle={TOOLTIP_STYLE}
                 formatter={(value: number) => [value.toLocaleString("en-IN"), resolvedY!.replace(/_/g, " ")]}
               />
-              <Legend wrapperStyle={{ color: "#94a3b8", fontSize: "12px" }} />
+              <Legend wrapperStyle={{ color: "#6b7280", fontSize: "12px" }} />
             </PieChart>
           )}
         </ResponsiveContainer>
@@ -267,14 +267,14 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
   const columns = Object.keys(data[0]);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-700/60">
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-slate-800/80">
+          <tr className="bg-gray-50">
             {columns.map((col) => (
               <th
                 key={col}
-                className="text-left px-4 py-3 text-slate-300 font-medium text-xs uppercase tracking-wider whitespace-nowrap"
+                className="text-left px-4 py-3 text-gray-500 font-medium text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 {col.replace(/_/g, " ")}
               </th>
@@ -285,12 +285,12 @@ const DataVisualizer: React.FC<DataVisualizerProps> = ({
           {data.map((row, i) => (
             <tr
               key={i}
-              className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors"
+              className="border-b border-gray-100 hover:bg-orange-50/30 transition-colors"
             >
               {columns.map((col) => (
                 <td
                   key={col}
-                  className="px-4 py-2.5 text-foreground whitespace-nowrap"
+                  className="px-4 py-2.5 text-gray-700 whitespace-nowrap"
                 >
                   {formatCell(col, row[col])}
                 </td>

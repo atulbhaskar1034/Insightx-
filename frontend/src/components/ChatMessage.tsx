@@ -57,20 +57,20 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
         </div>
       )}
 
-      <div className={`max-w-[85%] ${isUser ? "chat-user-msg px-4 py-3" : "space-y-3"}`}>
+      <div className={`max-w-[85%] ${isUser ? "px-4 py-3 bg-gray-900 text-white rounded-2xl rounded-br-md" : "space-y-3"}`}>
         {isUser ? (
-          <p className="text-sm text-foreground">{message.content}</p>
+          <p className="text-sm">{message.content}</p>
         ) : (
           <>
             {message.data && (
-              <div className="chat-ai-msg p-4 space-y-3">
+              <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md p-4 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
                     {message.data.title}
                   </span>
                   <button
                     onClick={handleExport}
-                    className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
                     title="Export data"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -90,21 +90,21 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 {message.data.summary &&
                   message.data.chartType !== "text" &&
                   (message.data.rawData?.length ?? 0) > 0 && (
-                    <p className="text-sm text-muted-foreground pt-2 border-t border-border/30">
+                    <p className="text-sm text-gray-500 pt-2 border-t border-gray-100">
                       {message.data.summary}
                     </p>
                   )}
 
                 {/* Follow-up questions */}
                 {message.data.followUpQuestions && message.data.followUpQuestions.length > 0 && (
-                  <div className="pdf-exclude pt-2 border-t border-border/30">
-                    <p className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Suggested follow-ups</p>
+                  <div className="pdf-exclude pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-400 mb-2 uppercase tracking-wider">Suggested follow-ups</p>
                     <div className="flex flex-wrap gap-2">
                       {message.data.followUpQuestions.map((q) => (
                         <button
                           key={q}
                           onClick={() => message.onFollowUp?.(q)}
-                          className="px-3 py-1.5 rounded-lg text-xs border border-border/50 bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all text-left"
+                          className="px-3 py-1.5 rounded-lg text-xs border border-gray-200 bg-gray-50 text-gray-500 hover:text-gray-900 hover:border-orange-200 hover:bg-orange-50/50 transition-all text-left"
                         >
                           {q}
                         </button>
@@ -116,10 +116,10 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 {/* SQL Disclosure */}
                 {message.data.sql && (
                   <details className="pdf-exclude pt-1">
-                    <summary className="text-xs text-muted-foreground/60 cursor-pointer hover:text-muted-foreground transition-colors">
+                    <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600 transition-colors">
                       View SQL
                     </summary>
-                    <pre className="mt-2 text-xs bg-secondary/40 rounded-lg p-3 overflow-x-auto text-muted-foreground font-mono">
+                    <pre className="mt-2 text-xs bg-gray-50 rounded-lg p-3 overflow-x-auto text-gray-600 font-mono border border-gray-100">
                       {message.data.sql}
                     </pre>
                   </details>

@@ -12,11 +12,19 @@ const faqs = [
   },
   {
     q: "Do I need to know SQL?",
-    a: "Not at all. Simply type or speak your question in plain English — like \"What did I spend on food last month?\" — and InsightX converts it to SQL automatically using AI.",
+    a: 'Not at all. Simply type your question in plain English — like "What did I spend on food last month?" — and InsightX converts it to SQL automatically using Vanna AI.',
   },
   {
     q: "Which AI models are used?",
-    a: "InsightX uses a dual-AI pipeline: Vanna AI for Text-to-SQL conversion, and Groq-powered LLMs for natural language synthesis. Whisper handles speech-to-text for voice queries.",
+    a: "InsightX uses a dual-AI pipeline: Vanna AI for Text-to-SQL conversion with ChromaDB vector embeddings, and Groq-powered LLaMA 3.3 70B for natural language synthesis, chart type selection, and follow-up generation.",
+  },
+  {
+    q: "How does fraud detection work?",
+    a: "InsightX uses an XGBoost classifier trained on transaction features (amount, time, network, device, bank) to predict fraud probability. SHAP values explain exactly which features drove the prediction — making it fully transparent and interpretable.",
+  },
+  {
+    q: "What is volume forecasting?",
+    a: "Using Facebook Prophet time-series models, InsightX predicts transaction volumes and amounts for the next 30 days. The model captures weekly seasonality patterns and provides confidence bands around each prediction.",
   },
   {
     q: "What databases are supported?",
@@ -24,7 +32,7 @@ const faqs = [
   },
   {
     q: "Is InsightX free to use?",
-    a: "Yes, InsightX is open-source and free. Since everything runs locally, there are no API costs or subscription fees.",
+    a: "Yes, InsightX is open-source and free under the MIT License. Since everything runs locally, there are no API costs or subscription fees — you only need a free Groq API key.",
   },
 ];
 
@@ -36,12 +44,12 @@ const FAQ = () => {
           <AccordionItem
             key={i}
             value={`item-${i}`}
-            className="glass-card px-6 border-none rounded-xl"
+            className="bg-white px-6 border border-gray-200 rounded-xl hover:border-orange-200 transition-colors data-[state=open]:border-orange-300 data-[state=open]:shadow-md data-[state=open]:shadow-orange-50"
           >
-            <AccordionTrigger className="text-foreground font-semibold text-left hover:no-underline py-5">
+            <AccordionTrigger className="text-gray-900 font-semibold text-left hover:no-underline py-5">
               {faq.q}
             </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-5">
+            <AccordionContent className="text-gray-500 text-sm leading-relaxed pb-5">
               {faq.a}
             </AccordionContent>
           </AccordionItem>

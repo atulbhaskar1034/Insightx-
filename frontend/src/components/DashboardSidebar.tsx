@@ -80,8 +80,8 @@ const DashboardSidebar = ({
   };
 
   return (
-    <Sidebar className="border-r border-white/[0.06]">
-      <SidebarContent className="flex flex-col h-full">
+    <Sidebar className="border-r border-gray-200">
+      <SidebarContent className="flex flex-col h-full bg-white">
         {/* ── Brand Header ─────────────────────────────────────────────── */}
         <div className="px-4 pt-5 pb-2">
           <Link
@@ -90,13 +90,13 @@ const DashboardSidebar = ({
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black text-white"
               style={{
-                background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                boxShadow: "0 0 20px -4px rgba(139, 92, 246, 0.4)",
+                background: "linear-gradient(135deg, #f97316, #ec4899)",
+                boxShadow: "0 0 15px -4px rgba(249, 115, 22, 0.3)",
               }}
             >
               IX
             </div>
-            <span className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+            <span className="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
               InsightX
             </span>
           </Link>
@@ -107,8 +107,8 @@ const DashboardSidebar = ({
           <button
             onClick={onNewChat}
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium 
-                       border border-white/[0.08] bg-white/[0.04]
-                       text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.12]
+                       border border-gray-200 bg-gray-50
+                       text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:border-gray-300
                        transition-all duration-200 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -118,18 +118,18 @@ const DashboardSidebar = ({
 
         {/* ── Session List ─────────────────────────────────────────────── */}
         <SidebarGroup className="flex-1 overflow-y-auto pt-1">
-          <SidebarGroupLabel className="px-4 text-[10px] font-semibold text-slate-500 uppercase tracking-[0.1em]">
+          <SidebarGroupLabel className="px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-[0.1em]">
             Recent
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="px-2 space-y-0.5">
               {sessions.length === 0 && (
                 <div className="px-3 py-6 text-center">
-                  <Sparkles className="w-5 h-5 text-slate-600 mx-auto mb-2" />
-                  <p className="text-xs text-slate-600">
+                  <Sparkles className="w-5 h-5 text-gray-300 mx-auto mb-2" />
+                  <p className="text-xs text-gray-400">
                     No conversations yet
                   </p>
-                  <p className="text-[10px] text-slate-700 mt-0.5">
+                  <p className="text-[10px] text-gray-300 mt-0.5">
                     Start by asking a question
                   </p>
                 </div>
@@ -141,8 +141,8 @@ const DashboardSidebar = ({
                     <SidebarMenuButton
                       className={`group relative flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-150
                         ${isActive
-                          ? "bg-white/[0.08] text-white"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                          ? "bg-orange-50 text-gray-900 border border-orange-200"
+                          : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
                         }`
                       }
                       onClick={() => navigate(`/dashboard/${session.id}`)}
@@ -152,26 +152,26 @@ const DashboardSidebar = ({
                         <div
                           className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full"
                           style={{
-                            background: "linear-gradient(180deg, #8b5cf6, #06b6d4)",
+                            background: "linear-gradient(180deg, #f97316, #ec4899)",
                           }}
                         />
                       )}
                       <MessageSquare
-                        className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-violet-400" : "text-slate-600"
+                        className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-orange-500" : "text-gray-400"
                           }`}
                       />
                       <span className="flex-1 text-[13px] truncate leading-tight">
                         {session.title}
                       </span>
                       {/* Time — visible normally, hidden on hover to show delete */}
-                      <span className="text-[10px] text-slate-600 shrink-0 group-hover:hidden">
+                      <span className="text-[10px] text-gray-400 shrink-0 group-hover:hidden">
                         {timeAgo(session.updated_at)}
                       </span>
                       {/* Delete — hidden normally, visible on hover */}
                       <button
                         onClick={(e) => handleDelete(e, session.id)}
                         className="hidden group-hover:flex items-center justify-center w-5 h-5 rounded-md 
-                                   text-slate-500 hover:text-red-400 hover:bg-red-400/10
+                                   text-gray-400 hover:text-red-500 hover:bg-red-50
                                    transition-colors shrink-0"
                         title="Delete chat"
                       >
@@ -186,13 +186,13 @@ const DashboardSidebar = ({
         </SidebarGroup>
 
         {/* ── Bottom Nav ───────────────────────────────────────────────── */}
-        <div className="mt-auto border-t border-white/[0.06] px-3 py-3 space-y-0.5">
+        <div className="mt-auto border-t border-gray-200 px-3 py-3 space-y-0.5">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link
                   to="/"
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all"
                 >
                   <Home className="w-4 h-4" />
                   <span className="text-[13px]">Home</span>
@@ -203,7 +203,7 @@ const DashboardSidebar = ({
               <SidebarMenuButton asChild>
                 <Link
                   to="/predictions"
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all"
                 >
                   <TrendingUp className="w-4 h-4" />
                   <span className="text-[13px]">Predictions</span>
@@ -211,7 +211,7 @@ const DashboardSidebar = ({
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-all cursor-pointer">
+              <SidebarMenuButton className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-50 transition-all cursor-pointer">
                 <Settings className="w-4 h-4" />
                 <span className="text-[13px]">Settings</span>
               </SidebarMenuButton>
