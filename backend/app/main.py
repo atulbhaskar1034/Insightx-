@@ -34,6 +34,7 @@ import pandas as pd
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from groq import Groq
@@ -60,13 +61,7 @@ if not GROQ_API_KEY:
     raise RuntimeError("GROQ_API_KEY not found. Create a .env file in backend/ (see .env.example).")
 
 
-# -- Vanna AI -- Local ChromaDB + Groq (OpenAI-compatible) ---------------------
-
-class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
-    def __init__(self, client=None, config=None):
-        ChromaDB_VectorStore.__init__(self, config=config)
-        OpenAI_Chat.__init__(self, client=client, config=config)
-
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 # Groq as OpenAI-compatible client for Vanna's SQL generation
 vanna_client = OpenAI(
@@ -74,13 +69,59 @@ vanna_client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-vn = MyVanna(client=vanna_client, config={
-    "model": GROQ_MODEL,
-    "path": VECTOR_STORE_PATH,
-})
-vn.connect_to_sqlite(DB_PATH)
+if PINECONE_API_KEY:
+    # Use Pinecone (Production/Managed)
+    from vanna.legacy.pinecone.pinecone_vector import PineconeDB_VectorStore
+    
+    class MyVanna(PineconeDB_VectorStore, OpenAI_Chat):
+        def __init__(self, client=None, config=None):
+            PineconeDB_VectorStore.__init__(self, config=config)
+            OpenAI_Chat.__init__(self, client=client, config=config)
+            
+    vn = MyVanna(client=vanna_client, config={
+        "model": GROQ_MODEL,
+        "pinecone_api_key": PINECONE_API_KEY,
+        "pinecone_index_name": "insightx-index",
+    })
+    print("[OK] Vanna AI initialized (Pinecone Vector Store)")
+else:
+    # Use ChromaDB (Local Dev)
+    from vanna.legacy.chromadb.chromadb_vector import ChromaDB_VectorStore
+    
+    class MyVanna(ChromaDB_VectorStore, OpenAI_Chat):
+        def __init__(self, client=None, config=None):
+            ChromaDB_VectorStore.__init__(self, config=config)
+            OpenAI_Chat.__init__(self, client=client, config=config)
+            
+    vn = MyVanna(client=vanna_client, config={
+        "model": GROQ_MODEL,
+        "path": VECTOR_STORE_PATH,
+    })
+    print(f"[OK] Vanna AI initialized (local ChromaDB: {VECTOR_STORE_PATH})")
+
+# Connect to Postgres (production) or SQLite (local dev)
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    pg_url = DATABASE_URL.replace("postgres://", "postgresql://", 1) if DATABASE_URL.startswith("postgres://") else DATABASE_URL
+    if "&channel_binding=require" in pg_url:
+        pg_url = pg_url.replace("&channel_binding=require", "")
+    elif "?channel_binding=require&" in pg_url:
+        pg_url = pg_url.replace("channel_binding=require&", "")
+    elif "?channel_binding=require" in pg_url:
+        pg_url = pg_url.replace("?channel_binding=require", "")
+    vn.connect_to_postgres(
+        host=None,  # Will be parsed from dsn
+        dbname=None,
+        user=None,
+        password=None,
+        port=None,
+        dsn=pg_url,
+    )
+    print(f"[OK] Vanna AI connected to PostgreSQL (Neon)")
+else:
+    vn.connect_to_sqlite(DB_PATH)
+    print(f"[OK] Vanna AI connected to SQLite: {DB_PATH}")
 print(f"[OK] Vanna AI initialized (local ChromaDB: {VECTOR_STORE_PATH})")
-print(f"[OK] Connected to SQLite: {DB_PATH}")
 
 # Groq native client for answer synthesis
 groq_client = Groq(api_key=GROQ_API_KEY)
@@ -122,9 +163,18 @@ except Exception as e:
 chat_db.init_db()
 print("[OK] Chat history database initialized")
 
-# -- FastAPI App ---------------------------------------------------------------
+# -- FastAPI Setup -------------------------------------------------------------
 
-app = FastAPI(title="InsightX Agentic API")
+app = FastAPI(title="InsightX Backend API")
+
+@app.on_event("startup")
+async def startup_event():
+    chat_db.init_db()
+
+@app.get("/api/health")
+async def health_check():
+    """Simple health check endpoint for cold-start detection."""
+    return {"status": "ok"}
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
 
@@ -404,6 +454,223 @@ async def ask_insightx(request: QueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# -- SSE Streaming Endpoint: /api/ask-stream -----------------------------------
+
+def _sse(event: str, data: str) -> str:
+    """Format a Server-Sent Event line pair."""
+    # Escape newlines in data to keep SSE protocol valid
+    safe_data = data.replace("\n", "\\n")
+    return f"event: {event}\ndata: {safe_data}\n\n"
+
+
+@app.post("/api/ask-stream")
+async def ask_stream(request: QueryRequest):
+    """
+    SSE-streaming version of /api/ask.
+    Emits events: status, sql, data, complete, error.
+    """
+    question = request.question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question cannot be empty.")
+
+    def generate():
+        try:
+            # -- Step 0: Intent Guardrail ------------------------------------------
+            yield _sse("status", "Analyzing your question…")
+
+            intent_check = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        f"Is this a data or analytics question about UPI transactions or financial data? "
+                        f"Reply with exactly one word: YES or NO.\n\nInput: \"{question}\""
+                    )
+                }],
+                temperature=0.0,
+                max_tokens=1024,
+            )
+            intent = intent_check.choices[0].message.content.strip().upper()
+
+            if not intent.startswith("YES"):
+                # ── Conversational (non-data) reply ──
+                yield _sse("status", "Generating response…")
+
+                history_msgs = [
+                    {"role": msg.role, "content": msg.content}
+                    for msg in request.chat_history[-10:]
+                ]
+                chat_reply = groq_client.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are InsightX, an AI assistant for UPI transaction analytics. "
+                                "You remember everything the user has told you in this conversation. "
+                                "If the user sends a greeting or off-topic message, reply briefly and "
+                                "guide them to ask a data question. Keep it friendly and concise."
+                            ),
+                        },
+                        *history_msgs,
+                        {"role": "user", "content": question},
+                    ],
+                    temperature=0.7,
+                    max_tokens=150,
+                )
+                reply_text = chat_reply.choices[0].message.content.strip()
+
+                payload = {
+                    "question": question,
+                    "sql": "",
+                    "data": [],
+                    "answer": reply_text,
+                    "follow_up_questions": [
+                        "Show total UPI transaction volume",
+                        "Which bank had the most transactions?",
+                        "What are the top 5 transactions by amount?",
+                    ],
+                }
+
+                # Persist
+                if request.session_id:
+                    try:
+                        chat_db.add_message(request.session_id, "user", question)
+                        chat_db.add_message(request.session_id, "assistant", reply_text)
+                        msgs = chat_db.get_messages(request.session_id)
+                        if len(msgs) <= 2:
+                            chat_db.auto_title(request.session_id, question)
+                    except Exception as save_err:
+                        print(f"[SAVE ERROR - conversational stream] {save_err}")
+                        traceback.print_exc()
+
+                yield _sse("complete", json.dumps(payload, default=str))
+                return
+
+            # -- Step A: Generate SQL ----------------------------------------------
+            yield _sse("status", "Writing SQL query…")
+            generated_sql = vn.generate_sql(question)
+            if generated_sql is None or generated_sql.strip() == "":
+                generated_sql = "-- Could not generate SQL"
+            yield _sse("sql", generated_sql)
+
+            # -- Step B: Execute SQL -----------------------------------------------
+            yield _sse("status", "Querying database…")
+            df = None
+            if not generated_sql.startswith("--"):
+                try:
+                    df = vn.run_sql(generated_sql)
+                except Exception:
+                    df = None
+
+            if df is None or (isinstance(df, pd.DataFrame) and df.empty):
+                df_markdown = "No data found."
+                data_dict = []
+            else:
+                df_markdown = df.to_markdown(index=False)
+                data_dict = df.fillna("None").to_dict(orient="records")
+
+            yield _sse("data", json.dumps(data_dict[:50], default=str))
+
+            # -- Step C: Groq Synthesis --------------------------------------------
+            yield _sse("status", "Generating insights…")
+
+            prompt = SYNTHESIS_PROMPT.format(
+                question=question,
+                df_markdown=df_markdown,
+                schema=DB_SCHEMA,
+            )
+
+            history_messages = [
+                {"role": msg.role, "content": msg.content}
+                for msg in request.chat_history[-6:]
+            ]
+
+            groq_response = groq_client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are InsightX, an expert data analyst for UPI transaction data. "
+                            "You answer questions about the transactions SQLite database."
+                        ),
+                    },
+                    *history_messages,
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.3,
+                max_tokens=1024,
+                response_format={"type": "json_object"},
+            )
+
+            raw_content = groq_response.choices[0].message.content.strip()
+
+            try:
+                llm_result = json.loads(raw_content)
+            except json.JSONDecodeError:
+                llm_result = {
+                    "answer": raw_content,
+                    "follow_up_questions": [
+                        "Can you break this down by transaction type?",
+                        "What does the trend look like over time?",
+                        "Are there any anomalies in this data?",
+                    ],
+                }
+
+            answer = llm_result.get("answer", raw_content)
+            follow_ups = llm_result.get("follow_up_questions", [])[:3]
+            chart_type = llm_result.get("chart_type", "table")
+            x_axis = llm_result.get("x_axis")
+            y_axis = llm_result.get("y_axis")
+
+            # -- Step D: Final payload ---------------------------------------------
+            response_payload = {
+                "question": question,
+                "sql": generated_sql,
+                "data": data_dict,
+                "answer": answer,
+                "follow_up_questions": follow_ups,
+                "chart_type": chart_type,
+                "x_axis": x_axis,
+                "y_axis": y_axis,
+            }
+
+            # Persist
+            if request.session_id:
+                try:
+                    chat_db.add_message(request.session_id, "user", question)
+                    chat_db.add_message(
+                        session_id=request.session_id,
+                        role="assistant",
+                        content=answer,
+                        sql_text=generated_sql,
+                        data_json=json.dumps(response_payload, default=str),
+                    )
+                    msgs = chat_db.get_messages(request.session_id)
+                    if len(msgs) <= 2:
+                        chat_db.auto_title(request.session_id, question)
+                except Exception as save_err:
+                    print(f"[SAVE ERROR - data stream] {save_err}")
+                    traceback.print_exc()
+
+            yield _sse("complete", json.dumps(response_payload, default=str))
+
+        except Exception as e:
+            traceback.print_exc()
+            yield _sse("error", json.dumps({"detail": str(e)}))
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 # -- ML: Fraud Prediction Endpoint ---------------------------------------------
 
 FRAUD_FEATURE_COLS = [
@@ -513,48 +780,87 @@ async def predict_fraud(request: FraudPredictionRequest):
 async def fraud_stats():
     """Return pre-computed fraud statistics for the dashboard."""
     try:
-        import sqlite3
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-
         stats = {}
 
-        # Overall fraud rate
-        row = conn.execute(
-            "SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions"
-        ).fetchone()
-        stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
-        stats["total_transactions"] = row["total"]
-        stats["fraud_count"] = row["fraud_count"]
+        if DATABASE_URL:
+            # Production: Neon PostgreSQL
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            pg_url = DATABASE_URL.replace("postgres://", "postgresql://", 1) if DATABASE_URL.startswith("postgres://") else DATABASE_URL
+            conn = psycopg2.connect(pg_url)
+            cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Fraud rate by bank
-        rows = conn.execute(
-            "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-            "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
-        ).fetchall()
-        stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
-                             "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
+            cur.execute("SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions")
+            row = cur.fetchone()
+            stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
+            stats["total_transactions"] = row["total"]
+            stats["fraud_count"] = row["fraud_count"]
 
-        # Fraud rate by time of day
-        rows = conn.execute(
-            "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-            "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
-        ).fetchall()
-        stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+            cur.execute(
+                "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
+            )
+            stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
+                                 "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+
+            cur.execute(
+                "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
+            )
+            stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                                     "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+
+            cur.execute(
+                "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
+            )
+            stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
+                                    "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+
+            cur.close()
+            conn.close()
+        else:
+            # Local dev: SQLite
+            import sqlite3
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+
+            row = conn.execute(
+                "SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions"
+            ).fetchone()
+            stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
+            stats["total_transactions"] = row["total"]
+            stats["fraud_count"] = row["fraud_count"]
+
+            rows = conn.execute(
+                "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
+            ).fetchall()
+            stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
                                  "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-        # Fraud rate by network
-        rows = conn.execute(
-            "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-            "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-            "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
-        ).fetchall()
-        stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
-                                "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
+            rows = conn.execute(
+                "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
+            ).fetchall()
+            stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                                     "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-        conn.close()
+            rows = conn.execute(
+                "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
+            ).fetchall()
+            stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
+                                    "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
+
+            conn.close()
+
         return stats
 
     except Exception as e:
@@ -565,8 +871,80 @@ async def fraud_stats():
 # -- ML: Forecast Endpoint -----------------------------------------------------
 
 @app.get("/api/forecast")
-async def get_forecast():
-    """Return 30-day transaction volume forecast."""
+async def get_forecast(
+    horizon: int = 30,
+    metric: str = "count",
+    what_if_factor: float = 1.0,
+):
+    """
+    Dynamic transaction volume forecast using Prophet.
+    
+    Query params:
+        horizon:        Number of days to forecast (7, 14, 30, 60, 90). Default: 30.
+        metric:         'count' (transaction count) or 'amount' (total amount). Default: 'count'.
+        what_if_factor: Scaling multiplier for predictions (e.g. 0.9 = 10% drop). Default: 1.0.
+    """
+    # Clamp horizon to reasonable range
+    horizon = max(7, min(horizon, 90))
+
+    # Try dynamic inference if Prophet model files exist
+    count_model_path = os.path.join(MODEL_DIR, "forecast_count_model.joblib")
+    amount_model_path = os.path.join(MODEL_DIR, "forecast_amount_model.joblib")
+
+    if os.path.exists(count_model_path) and os.path.exists(amount_model_path):
+        try:
+            import joblib as jl
+
+            # Load the appropriate model
+            model_path = count_model_path if metric == "count" else amount_model_path
+            model = jl.load(model_path)
+
+            # Generate forecast with custom horizon
+            future = model.make_future_dataframe(periods=horizon)
+            full_forecast = model.predict(future)
+
+            # Split into historical fit and future predictions
+            training_end = model.history["ds"].max()
+            future_only = full_forecast[full_forecast["ds"] > training_end][
+                ["ds", "yhat", "yhat_lower", "yhat_upper"]
+            ].copy()
+
+            # Apply what-if scaling
+            if what_if_factor != 1.0:
+                for col in ["yhat", "yhat_lower", "yhat_upper"]:
+                    future_only[col] = future_only[col] * what_if_factor
+
+            future_only["ds"] = future_only["ds"].dt.strftime("%Y-%m-%d")
+
+            # Load historical data from the static forecast_data for the chart
+            historical = []
+            if forecast_data and "historical" in forecast_data:
+                historical = forecast_data["historical"]
+
+            # Build dynamic response
+            result = {
+                "historical": historical,
+                "count_forecast": future_only.to_dict(orient="records") if metric == "count" else (
+                    forecast_data.get("count_forecast", []) if forecast_data else []
+                ),
+                "amount_forecast": future_only.to_dict(orient="records") if metric == "amount" else (
+                    forecast_data.get("amount_forecast", []) if forecast_data else []
+                ),
+                "metadata": {
+                    "forecast_days": horizon,
+                    "training_days": len(model.history),
+                    "what_if_factor": what_if_factor,
+                    "metric": metric,
+                    "avg_daily_count": forecast_data["metadata"]["avg_daily_count"] if forecast_data else 0,
+                    "avg_daily_amount": forecast_data["metadata"]["avg_daily_amount"] if forecast_data else 0,
+                },
+            }
+            return result
+        except Exception as e:
+            print(f"[!] Dynamic forecast failed, falling back to static: {e}")
+            traceback.print_exc()
+
+    # Fallback: return static forecast_data.json
     if forecast_data is None:
         raise HTTPException(
             status_code=503,

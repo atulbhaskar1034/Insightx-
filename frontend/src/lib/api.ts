@@ -37,6 +37,15 @@ export interface StoredMessage {
 
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
+export async function checkHealth(): Promise<boolean> {
+    try {
+        const res = await fetch(`${BASE_URL}/health`);
+        return res.ok;
+    } catch {
+        return false;
+    }
+}
+
 // -- Text Query ---------------------------------------------------------------
 
 export async function askQuestion(
@@ -58,6 +67,88 @@ export async function askQuestion(
         throw new Error(err.detail ?? `Request failed (${res.status})`);
     }
     return res.json();
+}
+
+// -- SSE Streaming Query ------------------------------------------------------
+
+export interface StreamEvent {
+    event: string;
+    data: string;
+}
+
+export async function askQuestionStream(
+    question: string,
+    chatHistory: ChatHistoryMessage[] = [],
+    sessionId?: string | null,
+    onEvent?: (event: StreamEvent) => void,
+): Promise<ApiResponse> {
+    const res = await fetch(`${BASE_URL}/ask-stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            question,
+            chat_history: chatHistory,
+            session_id: sessionId ?? null,
+        }),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail ?? `Request failed (${res.status})`);
+    }
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalPayload: ApiResponse | null = null;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse complete SSE events (separated by double newlines)
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || "";
+
+        for (const part of parts) {
+            if (!part.trim()) continue;
+            const lines = part.split("\n");
+            let eventType = "";
+            let eventData = "";
+
+            for (const line of lines) {
+                if (line.startsWith("event: ")) {
+                    eventType = line.slice(7);
+                } else if (line.startsWith("data: ")) {
+                    eventData = line.slice(6);
+                }
+            }
+
+            if (!eventType) continue;
+
+            // Unescape newlines that were escaped on the backend
+            const unescaped = eventData.replace(/\\n/g, "\n");
+
+            if (eventType === "error") {
+                const err = JSON.parse(unescaped);
+                throw new Error(err.detail ?? "Stream error");
+            }
+
+            if (eventType === "complete") {
+                finalPayload = JSON.parse(unescaped);
+            }
+
+            onEvent?.({ event: eventType, data: unescaped });
+        }
+    }
+
+    if (!finalPayload) {
+        throw new Error("Stream ended without a complete response");
+    }
+
+    return finalPayload;
 }
 
 // -- ML: Fraud Prediction -----------------------------------------------------
@@ -85,13 +176,23 @@ export async function predictFraud(
 
 // -- ML: Forecast -------------------------------------------------------------
 
-export async function getForecast(): Promise<{
+export async function getForecast(params?: {
+    horizon?: number;
+    metric?: string;
+    whatIfFactor?: number;
+}): Promise<{
     historical: { date: string; txn_count: number; total_amount: number }[];
     count_forecast: { ds: string; yhat: number; yhat_lower: number; yhat_upper: number }[];
     amount_forecast: { ds: string; yhat: number; yhat_lower: number; yhat_upper: number }[];
     metadata: Record<string, unknown>;
 }> {
-    const res = await fetch(`${BASE_URL}/forecast`);
+    const searchParams = new URLSearchParams();
+    if (params?.horizon) searchParams.set("horizon", String(params.horizon));
+    if (params?.metric) searchParams.set("metric", params.metric);
+    if (params?.whatIfFactor !== undefined) searchParams.set("what_if_factor", String(params.whatIfFactor));
+    const qs = searchParams.toString();
+    const url = `${BASE_URL}/forecast${qs ? `?${qs}` : ""}`;
+    const res = await fetch(url);
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail ?? `Forecast request failed (${res.status})`);

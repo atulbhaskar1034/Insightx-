@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
 import DataVisualizer from "@/components/DataVisualizer";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 export interface Message {
   id: string;
@@ -78,13 +79,15 @@ const ChatMessage = ({ message }: ChatMessageProps) => {
                 </div>
 
                 {/* Dynamic Data Visualizer */}
-                <DataVisualizer
-                  data={message.data.rawData ?? []}
-                  chartType={message.data.chartType ?? "table"}
-                  xAxis={message.data.xAxis ?? null}
-                  yAxis={message.data.yAxis ?? null}
-                  textContent={message.data.textContent}
-                />
+                <ErrorBoundary>
+                  <DataVisualizer
+                    data={message.data.rawData ?? []}
+                    chartType={message.data.chartType ?? "table"}
+                    xAxis={message.data.xAxis ?? null}
+                    yAxis={message.data.yAxis ?? null}
+                    textContent={message.data.textContent}
+                  />
+                </ErrorBoundary>
 
                 {/* Summary (for non-text chart types) */}
                 {message.data.summary &&

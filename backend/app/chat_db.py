@@ -12,14 +12,22 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-IS_POSTGRES = DATABASE_URL and (DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"))
+if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # Strip channel_binding if present to prevent libpq negotiation issues
+    if "&channel_binding=require" in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("&channel_binding=require", "")
+    elif "?channel_binding=require&" in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("channel_binding=require&", "")
+    elif "?channel_binding=require" in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("?channel_binding=require", "")
+
+IS_POSTGRES = bool(DATABASE_URL and DATABASE_URL.startswith("postgresql://"))
 
 if IS_POSTGRES:
     import psycopg2
     from psycopg2.extras import RealDictCursor
-    # Fix Render postgres:// to postgresql://
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 DB_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_PATH = DB_DIR / "chat_history.db"

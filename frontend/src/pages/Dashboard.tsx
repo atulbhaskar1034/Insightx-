@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Download } from "lucide-react";
+import { Send, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import ChatMessage, { type Message } from "@/components/ChatMessage";
@@ -9,8 +9,10 @@ import { ReportTemplate } from "@/components/ReportTemplate";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import {
   askQuestion,
+  askQuestionStream,
   createSession,
   getSessionMessages,
+  checkHealth,
   type ApiResponse,
   type ChatHistoryMessage,
 } from "@/lib/api";
@@ -57,9 +59,37 @@ const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamStatus, setStreamStatus] = useState("");
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Cold Start Detection
+  useEffect(() => {
+    let isMounted = true;
+    let toastId: string | number | null = null;
+    
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        toastId = toast.loading("Waking up AI server (may take up to 30s)...", { duration: 30000 });
+      }
+    }, 1500);
+
+    checkHealth().then((ok) => {
+      if (!isMounted) return;
+      clearTimeout(timeoutId);
+      if (toastId) {
+        toast.dismiss(toastId);
+        if (ok) toast.success("Server is ready!");
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      if (toastId) toast.dismiss(toastId);
+    };
+  }, []);
 
   // Sync URL param to state
   useEffect(() => {
@@ -151,9 +181,29 @@ const Dashboard = () => {
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
       setIsLoading(true);
+      setStreamStatus("Analyzing your question…");
 
       try {
-        const res = await askQuestion(question, history, sid);
+        // Use SSE streaming endpoint with fallback to regular endpoint
+        let res: ApiResponse;
+        try {
+          res = await askQuestionStream(question, history, sid, (event) => {
+            switch (event.event) {
+              case "status":
+                setStreamStatus(event.data);
+                break;
+              case "sql":
+                setStreamStatus("Querying database…");
+                break;
+              case "data":
+                setStreamStatus("Generating insights…");
+                break;
+            }
+          });
+        } catch {
+          // Fallback to non-streaming endpoint
+          res = await askQuestion(question, history, sid);
+        }
 
         const data = apiResponseToMessageData(res);
         const aiMsg: Message = {
@@ -186,6 +236,7 @@ const Dashboard = () => {
         ]);
       } finally {
         setIsLoading(false);
+        setStreamStatus("");
       }
     },
     [isLoading, messages, ensureSession],
@@ -303,10 +354,19 @@ const Dashboard = () => {
               {isLoading && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3 items-start">
                   <div className="w-8 h-8 rounded-lg glow-button flex items-center justify-center text-[10px] font-bold shrink-0">IX</div>
-                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 space-y-2 w-64">
-                    <div className="h-3 w-3/4 rounded skeleton-shimmer" />
-                    <div className="h-3 w-1/2 rounded skeleton-shimmer" />
-                    <div className="h-3 w-2/3 rounded skeleton-shimmer" />
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 w-72">
+                    <div className="flex items-center gap-2.5">
+                      <Loader2 className="w-4 h-4 animate-spin text-orange-500 shrink-0" />
+                      <motion.span
+                        key={streamStatus}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-sm text-gray-500"
+                      >
+                        {streamStatus || "Thinking…"}
+                      </motion.span>
+                    </div>
                   </div>
                 </motion.div>
               )}

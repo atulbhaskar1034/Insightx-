@@ -443,14 +443,31 @@ const FraudResultCard = ({ result }: { result: FraudResult }) => {
 const ForecastView = () => {
   const [data, setData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [metric, setMetric] = useState<"count" | "amount">("count");
+  const [horizon, setHorizon] = useState(30);
+  const [whatIfFactor, setWhatIfFactor] = useState(1.0);
+
+  const fetchForecast = async (h: number, m: string, wf: number, isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const result = await getForecast({ horizon: h, metric: m, whatIfFactor: wf });
+      setData(result);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    getForecast()
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchForecast(horizon, metric, whatIfFactor);
   }, []);
+
+  const handleRefresh = () => {
+    fetchForecast(horizon, metric, whatIfFactor, true);
+  };
 
   if (loading) {
     return (
@@ -489,48 +506,128 @@ const ForecastView = () => {
 
   const chartData = [...historical, ...forecastPoints];
 
+  const HORIZON_OPTIONS = [
+    { value: 7, label: "7 Days" },
+    { value: 14, label: "14 Days" },
+    { value: 30, label: "30 Days" },
+    { value: 60, label: "60 Days" },
+    { value: 90, label: "90 Days" },
+  ];
+
+  const whatIfPct = Math.round((whatIfFactor - 1) * 100);
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">30-Day Volume Forecast</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Dynamic Volume Forecast</h2>
           <p className="text-sm text-gray-500">
-            Prophet time-series model with weekly seasonality decomposition.
+            Prophet time-series model · Adjust horizon and scenarios below
           </p>
         </div>
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-gray-100 border border-gray-200">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-gray-100 border border-gray-200">
+            <button
+              onClick={() => setMetric("count")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                metric === "count" ? "bg-white text-orange-600 shadow-sm" : "text-gray-400"
+              }`}
+            >
+              Txn Count
+            </button>
+            <button
+              onClick={() => setMetric("amount")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                metric === "amount" ? "bg-white text-cyan-600 shadow-sm" : "text-gray-400"
+              }`}
+            >
+              Txn Amount
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Horizon Selector */}
+        <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+          <p className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wider">Forecast Horizon</p>
+          <div className="flex gap-1.5 flex-wrap">
+            {HORIZON_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setHorizon(opt.value)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  horizon === opt.value
+                    ? "bg-orange-100 text-orange-700 border border-orange-200"
+                    : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* What-If Slider */}
+        <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+          <p className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wider">What-If Scenario</p>
+          <div className="space-y-2">
+            <input
+              type="range"
+              min={0.5}
+              max={1.5}
+              step={0.05}
+              value={whatIfFactor}
+              onChange={(e) => setWhatIfFactor(parseFloat(e.target.value))}
+              className="w-full h-1.5 rounded-full bg-gray-200 appearance-none cursor-pointer accent-orange-500"
+            />
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] text-gray-400">-50%</span>
+              <span className={`text-sm font-bold ${
+                whatIfPct > 0 ? "text-emerald-600" : whatIfPct < 0 ? "text-red-500" : "text-gray-600"
+              }`}>
+                {whatIfPct > 0 ? "+" : ""}{whatIfPct}%
+              </span>
+              <span className="text-[10px] text-gray-400">+50%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Refresh Button & Status */}
+        <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between">
+          <p className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wider">Apply Changes</p>
           <button
-            onClick={() => setMetric("count")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              metric === "count" ? "bg-white text-orange-600 shadow-sm" : "text-gray-400"
-            }`}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200
+                       bg-gradient-to-r from-cyan-500 to-blue-500 text-white
+                       hover:from-cyan-600 hover:to-blue-600 hover:shadow-lg hover:shadow-cyan-100
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       flex items-center justify-center gap-2"
           >
-            Txn Count
-          </button>
-          <button
-            onClick={() => setMetric("amount")}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-              metric === "amount" ? "bg-white text-cyan-600 shadow-sm" : "text-gray-400"
-            }`}
-          >
-            Txn Amount
+            {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />}
+            {refreshing ? "Forecasting…" : "Refresh Forecast"}
           </button>
         </div>
       </div>
 
       {/* KPI Row */}
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Training Days" value={String(data.metadata.training_days)} color="violet" />
-        <KpiCard label="Forecast Days" value={String(data.metadata.forecast_days)} color="cyan" />
+        <KpiCard label="Forecast Horizon" value={`${horizon} Days`} color="violet" />
+        <KpiCard label="Training Days" value={String(data.metadata.training_days ?? "—")} color="cyan" />
         <KpiCard
           label="Avg Daily Count"
-          value={data.metadata.avg_daily_count.toLocaleString("en-IN")}
+          value={(data.metadata.avg_daily_count ?? 0).toLocaleString("en-IN")}
           color="emerald"
         />
         <KpiCard
-          label="Avg Daily Amount"
-          value={`₹${data.metadata.avg_daily_amount.toLocaleString("en-IN")}`}
+          label={whatIfFactor !== 1 ? `Scenario (${whatIfPct > 0 ? "+" : ""}${whatIfPct}%)` : "Avg Daily Amount"}
+          value={whatIfFactor !== 1
+            ? `₹${Math.round((data.metadata.avg_daily_amount as number ?? 0) * whatIfFactor).toLocaleString("en-IN")}`
+            : `₹${(data.metadata.avg_daily_amount ?? 0).toLocaleString("en-IN")}`
+          }
           color="amber"
         />
       </div>
@@ -550,6 +647,13 @@ const ForecastView = () => {
             <div className="w-6 h-3 rounded bg-cyan-100" />
             <span className="text-xs text-gray-500">Confidence Band</span>
           </div>
+          {whatIfFactor !== 1 && (
+            <div className="ml-auto px-2 py-0.5 rounded-md bg-orange-100 border border-orange-200">
+              <span className="text-[10px] font-medium text-orange-700">
+                What-If: {whatIfPct > 0 ? "+" : ""}{whatIfPct}% applied
+              </span>
+            </div>
+          )}
         </div>
 
         <ResponsiveContainer width="100%" height={380}>
