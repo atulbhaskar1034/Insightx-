@@ -109,13 +109,14 @@ if DATABASE_URL:
         pg_url = pg_url.replace("channel_binding=require&", "")
     elif "?channel_binding=require" in pg_url:
         pg_url = pg_url.replace("?channel_binding=require", "")
+    from urllib.parse import urlparse
+    result = urlparse(pg_url)
     vn.connect_to_postgres(
-        host=None,  # Will be parsed from dsn
-        dbname=None,
-        user=None,
-        password=None,
-        port=None,
-        dsn=pg_url,
+        host=result.hostname,
+        dbname=result.path[1:] if result.path.startswith("/") else result.path,
+        user=result.username,
+        password=result.password,
+        port=result.port or 5432,
     )
     print(f"[OK] Vanna AI connected to PostgreSQL (Neon)")
 else:
