@@ -3,6 +3,10 @@
   "buildCommand": "npm run build",
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://insightx-m0fs.onrender.com/api/:path*"
+    },
+    {
       "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
