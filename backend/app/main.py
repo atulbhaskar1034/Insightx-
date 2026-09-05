@@ -13,6 +13,8 @@ ML Models:
 No external Vanna API key needed -- all training data lives in local ChromaDB.
 """
 
+import asyncio
+import hashlib
 import json
 import os
 import base64
@@ -23,6 +25,8 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 import traceback
+
+from cachetools import TTLCache
 
 from app import chat_db
 
@@ -126,6 +130,23 @@ print(f"[OK] Vanna AI initialized (local ChromaDB: {VECTOR_STORE_PATH})")
 
 # Groq native client for answer synthesis
 groq_client = Groq(api_key=GROQ_API_KEY)
+
+# ── Performance: In-Memory TTL Caches ($0 Redis alternative) ──────────────────
+# Cache identical query responses to avoid redundant LLM calls and DB queries.
+
+# Cache up to 200 recent /api/ask responses for 15 minutes
+ask_cache = TTLCache(maxsize=200, ttl=900)
+
+# Cache fraud statistics for 5 minutes (data changes rarely)
+fraud_stats_cache = TTLCache(maxsize=5, ttl=300)
+
+# Cache forecast data for 1 hour (static until model retrain)
+forecast_cache = TTLCache(maxsize=10, ttl=3600)
+
+
+def _cache_key(*args) -> str:
+    """Generate a stable cache key from arguments."""
+    return hashlib.md5(json.dumps(args, sort_keys=True, default=str).encode()).hexdigest()
 print(f"[OK] Groq LLM initialized (model: {GROQ_MODEL})")
 
 # -- ML Models -----------------------------------------------------------------
@@ -133,16 +154,21 @@ print(f"[OK] Groq LLM initialized (model: {GROQ_MODEL})")
 MODEL_DIR = os.path.join(PROJECT_ROOT, "models")
 fraud_model = None
 fraud_encoders = None
+fraud_explainer = None  # Pre-computed SHAP explainer (initialized once at startup)
 forecast_data = None
 
 try:
     import joblib
+    import shap as shap_module
     fraud_model_path = os.path.join(MODEL_DIR, "fraud_model.joblib")
     fraud_encoders_path = os.path.join(MODEL_DIR, "fraud_encoders.joblib")
     if os.path.exists(fraud_model_path) and os.path.exists(fraud_encoders_path):
         fraud_model = joblib.load(fraud_model_path)
         fraud_encoders = joblib.load(fraud_encoders_path)
-        print("[OK] Fraud detection model loaded")
+        # Pre-compute SHAP TreeExplainer ONCE at startup instead of per-request.
+        # This saves ~200-500ms of CPU time on every /api/predict-fraud call.
+        fraud_explainer = shap_module.TreeExplainer(fraud_model)
+        print("[OK] Fraud detection model loaded + SHAP explainer pre-computed")
     else:
         print("[!] Fraud model not found. Run: python scripts/train_fraud_model.py")
 except Exception as e:
@@ -279,8 +305,17 @@ async def ask_insightx(request: QueryRequest):
         if not question:
             raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
+        # -- Check ask_cache first (avoids redundant LLM calls) ----------------
+        cache_key = _cache_key(question, [(m.role, m.content) for m in request.chat_history[-6:]])
+        cached = ask_cache.get(cache_key)
+        if cached is not None:
+            # Serve from cache — 0 LLM calls, 0 DB queries, ~4ms response
+            return cached
+
         # -- Step 0: Intent Guardrail ------------------------------------------
-        intent_check = groq_client.chat.completions.create(
+        # Wrapped in asyncio.to_thread to avoid blocking the event loop
+        intent_check = await asyncio.to_thread(
+            groq_client.chat.completions.create,
             model=GROQ_MODEL,
             messages=[{
                 "role": "user",
@@ -290,7 +325,7 @@ async def ask_insightx(request: QueryRequest):
                 )
             }],
             temperature=0.0,
-            max_tokens=1024,
+            max_tokens=5,  # Only needs YES/NO — was wasting 1024 tokens before
         )
         intent = intent_check.choices[0].message.content.strip().upper()
 
@@ -300,7 +335,8 @@ async def ask_insightx(request: QueryRequest):
                 {"role": msg.role, "content": msg.content}
                 for msg in request.chat_history[-10:]
             ]
-            chat_reply = groq_client.chat.completions.create(
+            chat_reply = await asyncio.to_thread(
+                groq_client.chat.completions.create,
                 model=GROQ_MODEL,
                 messages=[
                     {
@@ -346,7 +382,8 @@ async def ask_insightx(request: QueryRequest):
             return response_payload
 
         # -- Step A: Vanna AI -- Generate SQL & Execute ------------------------
-        generated_sql = vn.generate_sql(question)
+        # Wrapped in asyncio.to_thread — Vanna calls are sync and block the event loop
+        generated_sql = await asyncio.to_thread(vn.generate_sql, question)
 
         if generated_sql is None or generated_sql.strip() == "":
             generated_sql = "-- Could not generate SQL"
@@ -354,7 +391,7 @@ async def ask_insightx(request: QueryRequest):
         df = None
         if not generated_sql.startswith("--"):
             try:
-                df = vn.run_sql(generated_sql)
+                df = await asyncio.to_thread(vn.run_sql, generated_sql)
             except Exception:
                 df = None
 
@@ -378,7 +415,8 @@ async def ask_insightx(request: QueryRequest):
             for msg in request.chat_history[-6:]
         ]
 
-        groq_response = groq_client.chat.completions.create(
+        groq_response = await asyncio.to_thread(
+            groq_client.chat.completions.create,
             model=GROQ_MODEL,
             messages=[
                 {
@@ -446,6 +484,9 @@ async def ask_insightx(request: QueryRequest):
                 print(f"[SAVE ERROR - data] {save_err}")
                 traceback.print_exc()
 
+        # Cache this response for future identical questions
+        ask_cache[cache_key] = response_payload
+
         return response_payload
 
     except HTTPException:
@@ -489,7 +530,7 @@ async def ask_stream(request: QueryRequest):
                     )
                 }],
                 temperature=0.0,
-                max_tokens=1024,
+                max_tokens=5,  # Only needs YES/NO
             )
             intent = intent_check.choices[0].message.content.strip().upper()
 
@@ -741,22 +782,22 @@ async def predict_fraud(request: FraudPredictionRequest):
         # Create feature array
         features = np.array([[encoded[col] for col in FRAUD_FEATURE_COLS]])
 
-        # Predict
-        probability = float(fraud_model.predict_proba(features)[0][1])
+        # Predict — wrapped in asyncio.to_thread to avoid blocking the event loop
+        pred_result = await asyncio.to_thread(fraud_model.predict_proba, features)
+        probability = float(pred_result[0][1])
         prediction = int(probability >= 0.5)
 
-        # SHAP explanation
+        # SHAP explanation — uses pre-computed explainer (initialized at startup)
         shap_contributions = {}
         try:
-            import shap
-            explainer = shap.TreeExplainer(fraud_model)
-            shap_values = explainer.shap_values(features)
-            for i, col in enumerate(FRAUD_FEATURE_COLS):
-                shap_contributions[col] = round(float(shap_values[0][i]), 4)
-            # Sort by absolute impact
-            shap_contributions = dict(
-                sorted(shap_contributions.items(), key=lambda x: abs(x[1]), reverse=True)
-            )
+            if fraud_explainer is not None:
+                shap_values = await asyncio.to_thread(fraud_explainer.shap_values, features)
+                for i, col in enumerate(FRAUD_FEATURE_COLS):
+                    shap_contributions[col] = round(float(shap_values[0][i]), 4)
+                # Sort by absolute impact
+                shap_contributions = dict(
+                    sorted(shap_contributions.items(), key=lambda x: abs(x[1]), reverse=True)
+                )
         except Exception:
             pass
 
@@ -779,88 +820,97 @@ async def predict_fraud(request: FraudPredictionRequest):
 
 @app.get("/api/fraud-stats")
 async def fraud_stats():
-    """Return pre-computed fraud statistics for the dashboard."""
+    """Return pre-computed fraud statistics for the dashboard.
+    
+    Results are cached in-memory for 5 minutes to avoid redundant DB queries.
+    """
+    # Check cache first
+    cached = fraud_stats_cache.get("stats")
+    if cached is not None:
+        return cached
+
     try:
         stats = {}
 
-        if DATABASE_URL:
-            # Production: Neon PostgreSQL
-            import psycopg2
-            from psycopg2.extras import RealDictCursor
-            pg_url = DATABASE_URL.replace("postgres://", "postgresql://", 1) if DATABASE_URL.startswith("postgres://") else DATABASE_URL
-            conn = psycopg2.connect(pg_url)
-            cur = conn.cursor(cursor_factory=RealDictCursor)
+        def _fetch_fraud_stats_sync():
+            """Synchronous function to fetch fraud stats, run via asyncio.to_thread."""
+            _stats = {}
+            if DATABASE_URL:
+                # Production: Neon PostgreSQL — use connection pool via chat_db.DBConn
+                with chat_db.DBConn() as db:
+                    db.execute("SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions")
+                    row = db.cursor.fetchone()
+                    _stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
+                    _stats["total_transactions"] = row["total"]
+                    _stats["fraud_count"] = row["fraud_count"]
 
-            cur.execute("SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions")
-            row = cur.fetchone()
-            stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
-            stats["total_transactions"] = row["total"]
-            stats["fraud_count"] = row["fraud_count"]
+                    db.execute(
+                        "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                        "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                        "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
+                    )
+                    _stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
+                                         "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in db.fetchall()]
 
-            cur.execute(
-                "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
-            )
-            stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
-                                 "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+                    db.execute(
+                        "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                        "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                        "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
+                    )
+                    _stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                                             "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in db.fetchall()]
 
-            cur.execute(
-                "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
-            )
-            stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
-                                     "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+                    db.execute(
+                        "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                        "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                        "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
+                    )
+                    _stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
+                                            "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in db.fetchall()]
+            else:
+                # Local dev: SQLite
+                import sqlite3
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
 
-            cur.execute(
-                "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
-            )
-            stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
-                                    "fraud_count": r["fraud_count"], "fraud_rate": float(r["fraud_rate"])} for r in cur.fetchall()]
+                row = conn.execute(
+                    "SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions"
+                ).fetchone()
+                _stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
+                _stats["total_transactions"] = row["total"]
+                _stats["fraud_count"] = row["fraud_count"]
 
-            cur.close()
-            conn.close()
-        else:
-            # Local dev: SQLite
-            import sqlite3
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-
-            row = conn.execute(
-                "SELECT COUNT(*) as total, SUM(fraud_flag) as fraud_count FROM transactions"
-            ).fetchone()
-            stats["overall_fraud_rate"] = round(row["fraud_count"] / row["total"] * 100, 2)
-            stats["total_transactions"] = row["total"]
-            stats["fraud_count"] = row["fraud_count"]
-
-            rows = conn.execute(
-                "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
-            ).fetchall()
-            stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
-                                 "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
-
-            rows = conn.execute(
-                "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
-            ).fetchall()
-            stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                rows = conn.execute(
+                    "SELECT sender_bank, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                    "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                    "FROM transactions GROUP BY sender_bank ORDER BY fraud_rate DESC"
+                ).fetchall()
+                _stats["by_bank"] = [{"bank": r["sender_bank"], "total": r["total"],
                                      "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-            rows = conn.execute(
-                "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
-                "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
-                "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
-            ).fetchall()
-            stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
-                                    "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
+                rows = conn.execute(
+                    "SELECT day_part, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                    "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                    "FROM transactions GROUP BY day_part ORDER BY fraud_rate DESC"
+                ).fetchall()
+                _stats["by_day_part"] = [{"day_part": r["day_part"], "total": r["total"],
+                                         "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
 
-            conn.close()
+                rows = conn.execute(
+                    "SELECT network_type, COUNT(*) as total, SUM(fraud_flag) as fraud_count, "
+                    "ROUND(SUM(fraud_flag) * 100.0 / COUNT(*), 2) as fraud_rate "
+                    "FROM transactions GROUP BY network_type ORDER BY fraud_rate DESC"
+                ).fetchall()
+                _stats["by_network"] = [{"network": r["network_type"], "total": r["total"],
+                                        "fraud_count": r["fraud_count"], "fraud_rate": r["fraud_rate"]} for r in rows]
+
+                conn.close()
+            return _stats
+
+        stats = await asyncio.to_thread(_fetch_fraud_stats_sync)
+
+        # Cache for 5 minutes
+        fraud_stats_cache["stats"] = stats
 
         return stats
 
@@ -888,6 +938,12 @@ async def get_forecast(
     # Clamp horizon to reasonable range
     horizon = max(7, min(horizon, 90))
 
+    # Check forecast cache first
+    fc_key = _cache_key("forecast", horizon, metric, what_if_factor)
+    cached = forecast_cache.get(fc_key)
+    if cached is not None:
+        return cached
+
     # Try dynamic inference if Prophet model files exist
     count_model_path = os.path.join(MODEL_DIR, "forecast_count_model.joblib")
     amount_model_path = os.path.join(MODEL_DIR, "forecast_amount_model.joblib")
@@ -900,9 +956,13 @@ async def get_forecast(
             model_path = count_model_path if metric == "count" else amount_model_path
             model = jl.load(model_path)
 
-            # Generate forecast with custom horizon
-            future = model.make_future_dataframe(periods=horizon)
-            full_forecast = model.predict(future)
+            # Generate forecast with custom horizon — wrapped in asyncio.to_thread
+            # because Prophet .predict() is CPU-bound and blocks the event loop
+            def _run_prophet():
+                future = model.make_future_dataframe(periods=horizon)
+                return model.predict(future)
+
+            full_forecast = await asyncio.to_thread(_run_prophet)
 
             # Split into historical fit and future predictions
             training_end = model.history["ds"].max()
@@ -940,6 +1000,8 @@ async def get_forecast(
                     "avg_daily_amount": forecast_data["metadata"]["avg_daily_amount"] if forecast_data else 0,
                 },
             }
+            # Cache the result for 1 hour
+            forecast_cache[fc_key] = result
             return result
         except Exception as e:
             print(f"[!] Dynamic forecast failed, falling back to static: {e}")

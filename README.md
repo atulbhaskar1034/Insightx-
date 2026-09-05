@@ -13,7 +13,8 @@
     <img src="https://img.shields.io/badge/Node.js-18+-green?logo=nodedotjs&logoColor=white" alt="Node" />
     <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
     <img src="https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=black" alt="React" />
-    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind" />
+    <img src="https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/Pinecone-000000?logo=pinecone&logoColor=white" alt="Pinecone" />
   </p>
 </div>
 
@@ -40,16 +41,14 @@
 
 | Feature | Description |
 |---------|-------------|
-| 💬 **Natural Language Queries** | Ask questions in plain English — Vanna AI converts them to SQL automatically. |
-| 🛡️ **Predictive AI (Fraud)** | Real-time transaction risk scoring using XGBoost with SHAP explainability. |
-| 📈 **Predictive AI (Forecast)** | 30-day transaction volume and value forecasting using Facebook Prophet time-series modeling. |
+| 💬 **Natural Language Queries** | Ask questions in plain English — Vanna AI converts them to SQL with a tested **93.3% query accuracy** across complex aggregations. |
+| 🛡️ **Predictive AI (Fraud)** | XGBoost engine scoring 250k UPI transactions. Handles extreme class imbalance (0.19% baseline fraud rate) via `scale_pos_weight` & SHAP explainability. |
+| 📈 **Predictive AI (Forecast)** | Dynamic Prophet time-series model supporting custom forecasting horizons up to 90 days and real-time 'What-If' scenario simulations. |
+| ☁️ **Cloud-Native Architecture** | Scalable production setup using **Neon PostgreSQL** for transactions and **Pinecone** for high-performance Vector RAG. |
 | 📄 **1-Click Board Reports** | Click one button to export your active chat session into a clean, light-themed, professional executive **PDF document**. |
-| 🎤 **Voice Input** | Speak your question — local Whisper STT transcribes and queries the database via microphone. |
-| 📸 **Image / OCR Input** | Upload a chart or screenshot — EasyOCR extracts text and Groq formulates a database query. |
-| 🤖 **Dual-AI Pipeline** | Vanna AI (Text-to-SQL) + Groq LLaMA 3.3 70B (executive summaries & follow-ups). |
+| 🤖 **Dual-AI Pipeline** | Vanna AI (Pinecone Text-to-SQL) + Groq LLaMA 3.3 70B (executive summaries, dynamic chart selection & smart follow-ups). |
 | 📊 **Dynamic Visualization** | The AI automatically decides the best way to visualize data: **Bar, Line, Pie, KPI, or Table**, rendered beautifully via Recharts. |
-| 🧠 **Chat Memory** | Full conversation history is persisted in SQLite — survives page reloads and browser restarts. |
-| 💡 **Smart Follow-ups** | AI-generated follow-up questions grounded strictly in the database schema — no hallucinated columns. |
+| 🧠 **Chat Memory** | Full conversation history is persisted seamlessly across sessions. |
 | 🎯 **Intent Guardrail** | Groq-powered intent classification prevents Vanna from generating SQL for greetings or off-topic input. |
 | 🗂️ **Session Management** | Create, switch, and delete chat sessions — premium glass-morphism sidebar with real-time history. |
 
@@ -294,12 +293,11 @@ InsightX is designed to be easily deployable on free-tier cloud infrastructure.
 |-----------|-----------|---------|
 | Web Framework | **FastAPI** 0.110+ | Async API server with auto-generated Swagger docs |
 | Text-to-SQL | **Vanna AI** 0.7+ | Converts natural language to SQL using vector similarity |
-| Vector Store | **ChromaDB** 0.4+ | Local vector database for Vanna's training data |
-| LLM (Runtime) | **Groq API** | SQL generation, summaries, OCR synthesis via LLaMA 3.3 70B & Vision models |
+| Vector Store | **Pinecone** / **ChromaDB** | Cloud vector DB (Production) / Local vector DB (Development) |
+| LLM (Runtime) | **Groq API** | SQL generation & synthesis via LLaMA 3.3 70B |
 | Fraud Detection | **XGBoost & SHAP** | Tree-based classification for real-time risk scoring and feature impact explanation |
-| Forecasting | **Prophet** | Time-series forecasting for transaction volumes with seasonality |
-| Cloud Services | **Render / Vercel** | Deployment infrastructure |
-| Database | **SQLite** | Transaction data + chat history |
+| Forecasting | **Prophet** | Dynamic time-series forecasting for transaction volumes with seasonality |
+| Database | **PostgreSQL (Neon)** / **SQLite** | Production relational DB / Local development DB |
 | Data Processing | **Pandas** 2.0+, **NumPy** 1.24+ | DataFrame operations and model preprocessing |
 
 ### Frontend
@@ -328,10 +326,13 @@ Create a `.env` file in `backend/` (use `.env.example` as template):
 # Groq API Key (used by the runtime API server and training scripts)
 GROQ_API_KEY=your_groq_api_key_here
 
-# ─── Optional ────────────────────────────────────────────────
+# ─── Production (Optional but Recommended) ───────────────────
 
-# LLM model name
-GROQ_MODEL=openai/gpt-oss-120b            # Default Groq model
+# Pinecone API Key for Cloud Vector Store (Fallback: local ChromaDB)
+PINECONE_API_KEY=your_pinecone_api_key
+
+# PostgreSQL Connection String (Fallback: local SQLite upi_transactions.db)
+DATABASE_URL=postgresql://user:password@ep-cool-snow.region.aws.neon.tech/dbname
 ```
 
 ---

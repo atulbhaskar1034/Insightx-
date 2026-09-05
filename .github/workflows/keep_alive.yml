@@ -2,8 +2,8 @@ name: Keep Alive Render Backend
 
 on:
   schedule:
-    # Runs every 14 minutes (Render shuts down after 15 minutes of inactivity)
-    - cron: '*/14 * * * *'
+    # Runs every 10 minutes (Render free tier shuts down after 15 minutes of inactivity)
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Allows manual trigger from the Actions tab
 
 jobs:
@@ -12,8 +12,7 @@ jobs:
     steps:
       - name: Ping Health Endpoint
         run: |
-          # Make sure to replace this URL with your actual deployed Render backend URL,
-          # or set it as a GitHub Repository Secret named BACKEND_URL.
-          BACKEND_URL="${{ secrets.BACKEND_URL || 'https://insightx-backend.onrender.com' }}"
+          # Set BACKEND_URL as a GitHub Repository Secret, or fall back to hardcoded URL.
+          BACKEND_URL="${{ secrets.BACKEND_URL || 'https://insightx-m0fs.onrender.com' }}"
           echo "Pinging backend at: $BACKEND_URL/api/health"
-          curl -f -s -m 15 "$BACKEND_URL/api/health" || echo "Warning: Ping failed or timed out."
+          curl -f -s -m 30 "$BACKEND_URL/api/health" || echo "Warning: Ping failed or timed out."
